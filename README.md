@@ -63,4 +63,40 @@ Read these before making architectural changes:
 
 ## Status
 
-Pre-alpha. The repository is being designed before implementation so the project can grow in game coverage without repeating the code-size problems of earlier large RuneLite projects.
+Pre-alpha. The first working plugin observes account state and shows account mode, state readiness, total level, and occupied inventory slots in a minimal sidebar. Recommendations and integrations are not implemented yet.
+
+## Local development
+
+Use JDK 11–21 (verified with JDK 21). The checked-in Gradle 8.10 wrapper downloads the build tooling; no system Gradle installation is required. RuneLite is pinned to release `1.12.38` in `build.gradle` for reproducible API behavior. Review and update that pin as RuneLite releases change.
+
+```sh
+./gradlew build
+./gradlew test
+./gradlew javaSourceSize
+./gradlew run
+```
+
+On Windows, use `gradlew.bat`. In an IDE, import the Gradle project and run `com.uimatlas.UimAtlasDevLauncher` from the test source set with `--developer-mode --debug`. The development launcher uses RuneLite's normal `ExternalPluginManager.loadBuiltin` workflow. A desktop display and network access to RuneLite/game services are required to launch the client. Enable **UIM Atlas** in RuneLite's plugin list if needed, then open its compass sidebar button. **Show sidebar** is the only plugin setting.
+
+The plugin JAR is `build/libs/uim-atlas-0.1.0.jar`; RuneLite dependencies and the development launcher are not bundled into it. Test reports are under `build/reports/tests/test/`. Every build runs the source-size report, also saved as `build/reports/java-source-size.txt`. It reports all Java and core Java separately, estimates tokens as characters divided by four, warns at ~100k/~130k core tokens, and fails at ~150k pending architecture review. Resource/data bytes are reported separately.
+
+## State contract and current limitations
+
+- `state/RuneLiteAccountObserver` is the only component that reads the client. `AccountStateService` publishes immutable, session-only snapshots. Domain values do not retain RuneLite objects. Skills use RuneLite enum names as identifiers; quests use RuneLite quest IDs; item containers preserve slot indices, exact item IDs, and quantities.
+- Observations carry source, observation time, and confidence. Missing containers are **unknown**, while an observed empty container has zero occupied slots. Total level sums real skill levels, excluding RuneLite's aggregate skill; boosted levels and XP remain available separately.
+- Reads start at a logged-in game tick with an available account hash. Stat/container events mark only their corresponding inputs dirty and coalesce at the next tick. The small account-mode and current-location reads run once per game tick; unchanged skills, containers, and quests are not rescanned.
+- Quest status uses RuneLite's read-only `Quest.getState` API after login and after `QUESTLIST_INIT`, outside script callbacks. RuneLite does not expose a universal quest-stage-change event. Quest snapshots are therefore **LAST OBSERVED**, not continuously verified; unavailable quest reads stay **UNKNOWN** until a subsequent refresh. This snapshot must not silently become a verified prerequisite for future recommendations. No quest rules or prerequisite tables are copied into Java.
+- **Loaded** means every implemented section is available, including quest statuses; it does not upgrade quest freshness. **Partial** means some state is unavailable. **Not logged in** also covers loading, reconnecting, and world hopping, when all prior observations are conservatively cleared. Logout, profile changes, disable/re-enable, and account-hash changes also reset state. Nothing is persisted or sent to external services by UIM Atlas.
+- Location includes world number/type flags, scene coordinates, plane, region ID, world-view ID, and instance status. Coordinates inside instances or nested world views are not overworld route destinations. No safe-area inference, pathfinding, or risk classification is performed.
+
+The observer follows the public [RuneLite API](https://github.com/runelite/runelite/tree/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api); development loading follows the official [example plugin](https://github.com/runelite/example-plugin). `Quest.getState` executes a read-only status script; UIM Atlas performs no gameplay actions.
+
+## Manual client check
+
+1. Launch with `./gradlew run`, enable UIM Atlas, and open its sidebar. Before login, values should be unknown and state should be **Not logged in**.
+2. Log into a UIM. After state arrives, verify **Ultimate Ironman**, real total level, and inventory occupancy against the client. A stack counts as one slot. Empty equipment is valid; unavailable equipment remains unknown.
+3. Change an inventory/equipment slot and gain XP or change a boosted level. Check that the next snapshot reflects the event. Reopen the quest list to request a fresh quest observation.
+4. Hop worlds, log out, switch accounts/profiles, and disable/re-enable the plugin. Check that old account values disappear and are re-observed. Other account modes should be labelled accurately, never as UIM.
+5. Toggle **Show sidebar** and verify that the navigation button disappears/reappears without duplicates.
+
+Automated tests cover normalization, unknown state, freshness, event coalescing, account resets, Guice injection, event subscription, and sidebar lifecycle with a mocked client. The development client has also been launched successfully, with RuneLite confirming the plugin loaded and running. Authenticated in-game checks still require the manual steps above. JDK 21 may produce upstream RuneLite reflection/LWJGL diagnostics during debug startup; these do not originate in UIM Atlas.

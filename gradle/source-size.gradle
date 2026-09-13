@@ -1,0 +1,34 @@
+tasks.register('javaSourceSize') {
+    group = 'verification'
+    description = 'Report Java size and enforce the architecture review budget.'
+    doLast {
+        def rows = fileTree('src').matching { include '**/*.java' }.files.collect { file ->
+            def source = file.getText('UTF-8')
+            [path: relativePath(file), lines: source.readLines().size(), chars: source.length()]
+        }.sort { a, b -> b.chars <=> a.chars ?: a.path <=> b.path }
+        def report = new StringBuilder('Java source size (tokens estimated as characters / 4)\n')
+        ['All': rows, 'Core': rows.findAll { it.path.startsWith('src/main/java/') }].each { label, files ->
+            int chars = files.sum { it.chars } ?: 0
+            report.append("${label}: ${files.size()} files, ${files.sum { it.lines } ?: 0} lines, ${chars} characters, ~${Math.ceil(chars / 4.0) as int} tokens\n")
+        }
+        report.append('Ten largest Java files (characters, lines):\n')
+        rows.take(10).each { report.append("  ${it.chars}, ${it.lines}: ${it.path}\n") }
+        def resources = fileTree('src').matching { include '**/resources/**' }.files
+        report.append("Resources/data: ${resources.size()} files, ${resources.sum { it.length() } ?: 0} bytes\n")
+        def output = layout.buildDirectory.file('reports/java-source-size.txt').get().asFile
+        output.parentFile.mkdirs()
+        output.setText(report.toString(), 'UTF-8')
+        logger.lifecycle(report.toString())
+        def coreTokens = Math.ceil((rows.findAll { it.path.startsWith('src/main/java/') }.sum { it.chars } ?: 0) / 4.0)
+        if (coreTokens >= 150000) {
+            throw new GradleException('Core Java requires an architecture review: ~150k source tokens exceeded.')
+        }
+        if (coreTokens >= 130000) {
+            logger.warn('Core Java exceeds the ~130k warning threshold; redesign repetitive behavior as data.')
+        } else if (coreTokens >= 100000) {
+            logger.warn('Core Java exceeds the preferred ~100k token budget.')
+        }
+    }
+}
+
+tasks.named('check') { dependsOn 'javaSourceSize' }
