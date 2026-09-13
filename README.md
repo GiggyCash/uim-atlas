@@ -69,6 +69,8 @@ A domain-only recommendation foundation now loads three synthetic test methods, 
 
 An immutable `AccountStateFacts` adapter now exposes observed real skill levels/XP, inventory occupancy/free slots, and exact item quantities in inventory, equipment and combined carried scopes through a generic `FactLookup`. It preserves observation provenance and freshness, including unknown state and conservative combined quantities. See [the fact-ID contract](DATA_SCHEMA.md#account-state-fact-contract). A pure-domain synthetic test connects account state to method evaluation; the adapter is not yet wired into the live plugin.
 
+The domain-only `MethodRanker` now evaluates multiple candidates, reuses `MethodScorer`, and selects an optional best plus ordered eligible alternatives. `AVAILABLE` and `NEEDS_PREP` compete by descending score, then ascending method ID; `BLOCKED` and `UNKNOWN` retain unscored diagnostics and cannot win. Results preserve missing preparation, original scoring inputs and contribution breakdowns. Synthetic tests cover deterministic ordering, UIM scoring tradeoffs and an inventory change reversing the winner through the full account-state/fact/evaluation/scoring chain. Production scoring-input derivation, real methods and live recommendation wiring remain unimplemented.
+
 ## Local development
 
 Use JDK 11–21 (verified with JDK 21). The checked-in Gradle 8.10 wrapper downloads the build tooling; no system Gradle installation is required. RuneLite is pinned to release `1.12.38` in `build.gradle` for reproducible API behavior. Review and update that pin as RuneLite releases change.

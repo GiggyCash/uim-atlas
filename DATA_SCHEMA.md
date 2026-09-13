@@ -97,11 +97,13 @@ No account-mode, quest, storage, POH, STASH, looting-bag, deathbank or integrati
 | Risk | -4 |
 | Uncertainty | -3 |
 
-The score is the sum of weighted contributions, retained individually for explanation. Weights are centralized in `MethodScorer.Factor` and replaceable through the scorer constructor (complete map, finite magnitudes <=100, original benefit/cost direction retained; zero disables a factor). Ties remain ties; candidate ranking and switching policy are future work.
+The score is the sum of weighted contributions, retained individually for explanation. Weights are centralized in `MethodScorer.Factor` and replaceable through the scorer constructor (complete map, finite magnitudes <=100, original benefit/cost direction retained; zero disables a factor). Equal scores remain equal in the scorer; `MethodRanker` orders exact ties by ascending method ID. Switching policy remains future work.
 
 Risk uses the larger of the supplied input and the definition's classification floor: LOW=0, CAUTION=0.5, HIGH=1. UNKNOWN danger is ineligible regardless of weights. Optional estimate uncertainty may be penalized; required-state uncertainty cannot be traded against rewards.
 
 Normalization and account-specific value derivation are deliberately not implemented. Callers must explicitly supply every factor; missing or invalid values are errors, not zero defaults. Raw XP/hour and minutes must not be mixed directly with normalized inputs. Tests use invented fixed denominators solely to demonstrate comparisons. Potential storage value in a definition is metadata, not proof that this account benefits from an unlock. Likewise, setup costs and inventory disruption need future account-specific derivation. No production score is calculated from these fixture defaults.
+
+`MethodRanker.Candidate` pairs a definition with an immutable copy of explicit score inputs. `rank(candidates, facts, now)` evaluates all definitions at the supplied instant and delegates eligibility and input validation to `MethodScorer`. Excluded candidates need no usable score inputs because no score is calculated; eligible candidates with missing or invalid factors fail the call. Duplicate method IDs are rejected. `RankingResult` retains the evaluation time, eligible candidates sorted by descending score then ID, and unscored excluded diagnostics sorted by ID. Its best is optional; alternatives contain only the remaining eligible candidates. Known missing preparation remains explicit and may win; missing required information cannot be offset by rewards. Negative eligible scores may still win. Original candidate inputs, requirement diagnostics and all signed contributions remain available as structured immutable values. No ranking result or player-specific scoring inputs are added to JSON, and the resource schema is unchanged.
 
 ## General rules
 
