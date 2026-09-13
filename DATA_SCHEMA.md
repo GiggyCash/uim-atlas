@@ -45,13 +45,41 @@ Every predicate requires `fact`, `comparison` (`AT_LEAST`, `EQUAL`, `AT_MOST`), 
 
 Preparation, free slots, setup items and consumed inputs form one preparation group. Repeated fact IDs within that group are rejected, preventing accidental double use or undercounting of one supply. Definitions must express the combined need under one fact until richer resource accounting is justified. Safety-relevant predicates must be hard requirements and cannot accept last-observed confidence.
 
-The evaluator consumes `Map<String, Observation<Double>>` and an explicit evaluation time. Callers must supply a coherent snapshot, retain the source/time/confidence of the underlying observation, and use separate fact IDs for distinct possession/storage scopes. An observed absence may be zero; an unobserved quantity must not be zero. No automatic account-state flattening or storage inference exists.
+The evaluator consumes `FactLookup` (or the existing `Map<String, Observation<Double>>` entry point) and an explicit evaluation time. Callers must supply a coherent snapshot, retain the source/time/confidence of the underlying observation, and use separate fact IDs for distinct possession/storage scopes. An observed absence may be zero; an unobserved quantity must not be zero. The account adapter below supports only skills and inventory/equipment facts; no storage inference exists.
 
 Freshness is checked independently of confidence: future timestamps, expired observations, missing observations, explicit unknown confidence, and nonfinite/negative observed values all produce `UNKNOWN`. Age exactly at the declared limit is accepted. `LAST_OBSERVED` needs explicit permission and must still pass the age check; it is never sufficient for a safety-relevant predicate. The current observation model has no user-confirmed/conflicted state; future adapters must preserve these conservatively rather than upgrading them to verified.
 
 Evaluation precedence is `BLOCKED` (known failed hard gate), then `UNKNOWN`, then `NEEDS_PREP`, then `AVAILABLE`. Missing hard gates, missing prep and unknown predicates remain in separate immutable diagnostic lists even when another status takes precedence. Only known failed preparation predicates enter preparation output. Unknown danger independently yields `UNKNOWN`. Stop conditions can use the same predicate evaluator later; this slice does not detect completion or filter completed goals.
 
 Validation rejects missing/extra/duplicate JSON fields, nulls, wrong types, unsupported versions/enums, duplicate IDs, unresolved fact references, invalid numeric ranges, empty stop lists and weakened safety policies with field-path errors. Parsing has a depth limit of 32. Validation uses RuneLite's existing Gson dependency; there is no additional runtime library, reflection-based domain deserialization, or separate JSON Schema dependency. Domain constructors copy collections; resource validation is owned by the loader.
+
+### Account state fact contract
+
+`new AccountStateFacts(accountState, asOf)` creates an immutable `FactLookup` from normalized domain values only. Pass it directly to `MethodEvaluator.evaluate(method, facts, now)`, with `now >= asOf` (normally use the same instant). It does not read a clock, client, service or external plugin. Create a new adapter when choosing to evaluate a new account snapshot; an existing adapter never follows later account updates or resets.
+
+IDs are case-sensitive and stable:
+
+| Fact ID | Value |
+| --- | --- |
+| `skill.<skill>.level` | Observed real level, never boosted level |
+| `skill.<skill>.xp` | Observed total XP |
+| `inventory.occupied_slots` | Number of occupied slots, independent of stack quantities |
+| `inventory.free_slots` | 28 minus occupied slots, only from an available inventory observation |
+| `inventory.item.<itemId>.quantity` | Sum of quantities for that exact item ID in inventory |
+| `equipment.item.<itemId>.quantity` | Sum of quantities for that exact item ID in equipment |
+| `carried.item.<itemId>.quantity` | Inventory plus equipment quantity, requiring both observations |
+
+`<skill>` is the normalized account skill key lowercased with `Locale.ROOT`, for example `CONSTRUCTION` becomes `construction`. No per-skill mappings or RuneLite enums are introduced. Missing skills are unknown; there is no default level or XP. The observer already excludes the aggregate skill. `<itemId>` is a canonical nonnegative decimal Java integer (`0` through `2147483647`, no sign or leading zeroes except `0` itself), matching the normalized item model. IDs work generically without asserting that an ID exists in the game. Exact IDs remain distinct, including noted/unnoted and other variants; no equivalence or nested-container content is inferred. Malformed or unsupported IDs return unknown.
+
+An observed empty inventory gives 0 occupied and 28 free slots. Unknown inventory gives unknown slot facts and item quantities. A stack consumes one slot regardless of quantity; duplicate item stacks in different slots contribute all their quantities. Summation uses `long` before conversion to the evaluator's numeric `Double` observations, avoiding 32-bit quantity overflow. Missing items in a known inventory/equipment observation are known zero with that container's metadata. A missing item in an unknown container remains unknown. Inventory slots outside the normalized 0–27 range make both slot facts unknown; item facts still describe the observed contents.
+
+Direct skill, container quantity and slot facts preserve the input source string, confidence and timestamp unchanged. Negative skill values and observations dated after `asOf` yield explicit unknowns. This cutoff also prevents a future-dated carried constituent being hidden by the older combined timestamp. Unknown observations have no invented value, source or timestamp, following the existing `Observation` model.
+
+Carried quantities require complete inventory **and** equipment observations, even when one source already contains enough items or both quantities would be zero. Either unknown source makes the combined fact unknown. Both `VERIFIED_NOW` sources produce `VERIFIED_NOW`; any `LAST_OBSERVED` source makes the result `LAST_OBSERVED`. The combined time is the older input timestamp, and its source string is `carried sum [inventory: <inventory source>; equipment: <equipment source>]`. This is derived provenance, not a new observation event. Sources remain separately queryable through their scoped facts. The model currently supports one timestamp/source string per observation, not a structured provenance graph.
+
+Confidence is not a freshness exemption: preserved `VERIFIED_NOW` observations can expire. The evaluator rejects facts exceeding a predicate's age limit and accepts `LAST_OBSERVED` only when explicitly permitted. Historical free-slot values and historical absent-item zeroes keep their historical confidence; they do not assert current free space or absence. The cutoff does not impose a global maximum age or renew stale observations.
+
+No account-mode, quest, storage, POH, STASH, looting-bag, deathbank or integration facts are exposed. Partial account readiness does not suppress independently observed supported sections. The adapter relies on normalized snapshot/reset behavior at the observation boundary. Pure-domain tests cover these semantics and a synthetic method becoming `AVAILABLE`, `BLOCKED` when real level falls, and `UNKNOWN` when required inventory state disappears. Production method loading and scoring weights are unchanged.
 
 ### Scoring scaffold contract
 

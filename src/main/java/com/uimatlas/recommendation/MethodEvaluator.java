@@ -34,6 +34,11 @@ public final class MethodEvaluator
 
     public Evaluation evaluate(MethodDefinition method, Map<String, Observation<Double>> facts, Instant now)
     {
+        return evaluate(method, fact -> facts.getOrDefault(fact, Observation.unknown()), now);
+    }
+
+    public Evaluation evaluate(MethodDefinition method, FactLookup facts, Instant now)
+    {
         List<Requirement> blockers = new ArrayList<>();
         List<Requirement> prep = new ArrayList<>();
         List<Requirement> unknown = new ArrayList<>();
@@ -48,7 +53,7 @@ public final class MethodEvaluator
         return new Evaluation(method, status, prep, blockers, unknown);
     }
 
-    private void check(List<Requirement> requirements, Map<String, Observation<Double>> facts, Instant now,
+    private void check(List<Requirement> requirements, FactLookup facts, Instant now,
         List<Requirement> missing, List<Requirement> unknown)
     {
         for (Requirement requirement : requirements)

@@ -67,6 +67,8 @@ Pre-alpha. The first working plugin observes account state and shows account mod
 
 A domain-only recommendation foundation now loads three synthetic test methods, evaluates hard requirements and missing preparation with explicit freshness, and scores eligible methods using visible placeholder weights. See [the implemented schema](DATA_SCHEMA.md#implemented-foundation-synthetic-method-schema-v1). Fixtures exist only in test resources and cannot load as production advice. Live recommendations, recommendation UI and integrations remain unimplemented.
 
+An immutable `AccountStateFacts` adapter now exposes observed real skill levels/XP, inventory occupancy/free slots, and exact item quantities in inventory, equipment and combined carried scopes through a generic `FactLookup`. It preserves observation provenance and freshness, including unknown state and conservative combined quantities. See [the fact-ID contract](DATA_SCHEMA.md#account-state-fact-contract). A pure-domain synthetic test connects account state to method evaluation; the adapter is not yet wired into the live plugin.
+
 ## Local development
 
 Use JDK 11–21 (verified with JDK 21). The checked-in Gradle 8.10 wrapper downloads the build tooling; no system Gradle installation is required. RuneLite is pinned to release `1.12.38` in `build.gradle` for reproducible API behavior. Review and update that pin as RuneLite releases change.
