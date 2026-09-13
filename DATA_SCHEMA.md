@@ -6,6 +6,75 @@ Represent RuneScape/UIM knowledge as validated resource data so adding game cove
 
 The exact serialization format can be chosen during implementation, but bundled versioned JSON is the preferred starting point because it is straightforward to validate, diff, generate, and load in a RuneLite plugin.
 
+## Implemented foundation: synthetic method schema v1
+
+This section describes the implemented format. Later sections remain conceptual guidance for future game data, not an alternative accepted format.
+
+`MethodDefinitionLoader.loadSynthetic(Reader)` accepts strict JSON with these required root fields:
+
+- `schemaVersion`: integer `1`
+- `dataKind`: exactly `SYNTHETIC_TEST_ONLY`
+- `facts`: objects containing a unique stable `id`
+- `methods`: a nonempty array of method definitions
+
+The only catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs require a deliberate schema/loader extension, including curated source and review metadata; changing the data-kind label alone cannot enable them.
+
+Stable IDs use lowercase letters, digits, underscores and dot-separated segments: `[a-z][a-z0-9_]*(\.[a-z0-9_]+)+`. Every requirement fact and produced resource ID must resolve in the catalog's `facts` declarations. These declarations validate references, not observation availability. Unknown fact observations remain unknown. There are no real skill, quest, item or location registries yet.
+
+Every method requires:
+
+| Field | Shape / units |
+| --- | --- |
+| `id`, `displayName` | Stable ID and synthetic display label |
+| `category`, `activity` | Nonblank category and skill/activity metadata; no game enum |
+| `start` | Nonblank `location`, `contact`, `instruction` labels; no route execution |
+| `hardRequirements` | Array of numeric fact predicates; all must pass |
+| `preparation` | Array of predicates describing actual setup needs |
+| `freeInventorySlots` | `AT_LEAST` integer predicate for `inventory.free_slots` |
+| `setupItems` | Positive integer `AT_LEAST` predicates for explicitly scoped possession facts |
+| `consumes` | Positive integer `AT_LEAST` predicates for inputs needed to begin one declared batch; description states the batch |
+| `produces` | Objects with declared `resourceId`, positive numeric `quantity`, nonblank `basis` (for example, per synthetic batch) |
+| `stopConditions` | Nonempty array of predicates; metadata for future focus handling, not start gates |
+| `style` | `attention` in [0,1], nonblank `playStyle`, boolean `tickManipulation` |
+| `xpRate` | Nonnegative `minimum` and `maximum` XP/hour, maximum >= minimum, nonblank `assumptions` |
+| `costs` | `storageUnlockValue` and `inventoryDisruption` in [0,1]; nonnegative `setupMinutes`, `transitionMinutes`; nonblank `assumptions` |
+| `danger` | `LOW`, `CAUTION`, `HIGH`, or `UNKNOWN`; generic classification, no safety guarantee |
+| `reason` | Nonblank short explanation metadata |
+
+Every predicate requires `fact`, `comparison` (`AT_LEAST`, `EQUAL`, `AT_MOST`), nonnegative finite `target`, nonblank `description`, boolean `allowLastObserved`, integer `maxAgeSeconds` in [0, 2147483647], and boolean `safetyRelevant`. Boolean facts use 0/1; quantities, levels and XP use numeric facts. There is no implicit conversion of enum/quest state to numbers. That will require an explicit adapter contract. This slice supports conjunction only, without prerequisite graphs or compound expressions.
+
+Preparation, free slots, setup items and consumed inputs form one preparation group. Repeated fact IDs within that group are rejected, preventing accidental double use or undercounting of one supply. Definitions must express the combined need under one fact until richer resource accounting is justified. Safety-relevant predicates must be hard requirements and cannot accept last-observed confidence.
+
+The evaluator consumes `Map<String, Observation<Double>>` and an explicit evaluation time. Callers must supply a coherent snapshot, retain the source/time/confidence of the underlying observation, and use separate fact IDs for distinct possession/storage scopes. An observed absence may be zero; an unobserved quantity must not be zero. No automatic account-state flattening or storage inference exists.
+
+Freshness is checked independently of confidence: future timestamps, expired observations, missing observations, explicit unknown confidence, and nonfinite/negative observed values all produce `UNKNOWN`. Age exactly at the declared limit is accepted. `LAST_OBSERVED` needs explicit permission and must still pass the age check; it is never sufficient for a safety-relevant predicate. The current observation model has no user-confirmed/conflicted state; future adapters must preserve these conservatively rather than upgrading them to verified.
+
+Evaluation precedence is `BLOCKED` (known failed hard gate), then `UNKNOWN`, then `NEEDS_PREP`, then `AVAILABLE`. Missing hard gates, missing prep and unknown predicates remain in separate immutable diagnostic lists even when another status takes precedence. Only known failed preparation predicates enter preparation output. Unknown danger independently yields `UNKNOWN`. Stop conditions can use the same predicate evaluator later; this slice does not detect completion or filter completed goals.
+
+Validation rejects missing/extra/duplicate JSON fields, nulls, wrong types, unsupported versions/enums, duplicate IDs, unresolved fact references, invalid numeric ranges, empty stop lists and weakened safety policies with field-path errors. Parsing has a depth limit of 32. Validation uses RuneLite's existing Gson dependency; there is no additional runtime library, reflection-based domain deserialization, or separate JSON Schema dependency. Domain constructors copy collections; resource validation is owned by the loader.
+
+### Scoring scaffold contract
+
+`MethodScorer` accepts an evaluation and all nine explicit normalized [0,1] factors. It returns no score for `BLOCKED` or `UNKNOWN`; `NEEDS_PREP` remains eligible for comparison as a plan requiring preparation. It does not become ready merely because it scores well.
+
+| Input | Placeholder weight |
+| --- | ---: |
+| Goal progress | +3 |
+| Storage/unlock value | +3 |
+| Current inventory fit | +2 |
+| Method efficiency | +1 |
+| Setup cost | -1 |
+| Transition cost | -2 |
+| Inventory disruption | -2 |
+| Risk | -4 |
+| Uncertainty | -3 |
+
+The score is the sum of weighted contributions, retained individually for explanation. Weights are centralized in `MethodScorer.Factor` and replaceable through the scorer constructor (complete map, finite magnitudes <=100, original benefit/cost direction retained; zero disables a factor). Ties remain ties; candidate ranking and switching policy are future work.
+
+Risk uses the larger of the supplied input and the definition's classification floor: LOW=0, CAUTION=0.5, HIGH=1. UNKNOWN danger is ineligible regardless of weights. Optional estimate uncertainty may be penalized; required-state uncertainty cannot be traded against rewards.
+
+Normalization and account-specific value derivation are deliberately not implemented. Callers must explicitly supply every factor; missing or invalid values are errors, not zero defaults. Raw XP/hour and minutes must not be mixed directly with normalized inputs. Tests use invented fixed denominators solely to demonstrate comparisons. Potential storage value in a definition is metadata, not proof that this account benefits from an unlock. Likewise, setup costs and inventory disruption need future account-specific derivation. No production score is calculated from these fixture defaults.
+
 ## General rules
 
 Every top-level data file or record family should support:

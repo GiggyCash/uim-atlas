@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "dataKind": "SYNTHETIC_TEST_ONLY",
+  "facts": [
+    {
+      "id": "synthetic.level"
+    },
+    {
+      "id": "synthetic.safety_clear"
+    },
+    {
+      "id": "synthetic.station_ready"
+    },
+    {
+      "id": "inventory.free_slots"
+    },
+    {
+      "id": "synthetic.carried_tool"
+    },
+    {
+      "id": "synthetic.carried_input"
+    },
+    {
+      "id": "synthetic.output"
+    }
+  ],
+  "methods": [
+    {
+      "id": "synthetic.method.steady",
+      "displayName": "Synthetic steady exercise",
+      "category": "SYNTHETIC_TRAINING",
+      "activity": "synthetic.practice",
+      "start": {
+        "location": "Synthetic practice station",
+        "contact": "Synthetic guide",
+        "instruction": "Review the synthetic exercise card"
+      },
+      "hardRequirements": [
+        {
+          "fact": "synthetic.level",
+          "comparison": "AT_LEAST",
+          "target": 10,
+          "description": "Synthetic level gate",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "synthetic.safety_clear",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify synthetic safety flag",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": true
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "synthetic.station_ready",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Prepare the synthetic station",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 2,
+        "description": "Free at least two slots",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 60,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "synthetic.carried_tool",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Bring one synthetic tool",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "synthetic.carried_input",
+          "comparison": "AT_LEAST",
+          "target": 3,
+          "description": "Bring three synthetic inputs for one exercise batch",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "synthetic.output",
+          "quantity": 1,
+          "basis": "per synthetic exercise batch"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "synthetic.output",
+          "comparison": "AT_LEAST",
+          "target": 5,
+          "description": "Stop when five synthetic outputs are observed",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.3,
+        "playStyle": "Synthetic relaxed practice",
+        "tickManipulation": false
+      },
+      "xpRate": {
+        "minimum": 100,
+        "maximum": 100,
+        "assumptions": "Invented XP/hour for tests only"
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 1,
+        "transitionMinutes": 1,
+        "inventoryDisruption": 0.1,
+        "assumptions": "Invented costs and normalized potential unlock value; no account inference"
+      },
+      "danger": "LOW",
+      "reason": "Synthetic ordering exercise only; never player advice"
+    },
+    {
+      "id": "synthetic.method.quick",
+      "displayName": "Synthetic quick exercise",
+      "category": "SYNTHETIC_TRAINING",
+      "activity": "synthetic.practice",
+      "start": {
+        "location": "Synthetic practice station",
+        "contact": "Synthetic guide",
+        "instruction": "Review the synthetic exercise card"
+      },
+      "hardRequirements": [
+        {
+          "fact": "synthetic.level",
+          "comparison": "AT_LEAST",
+          "target": 10,
+          "description": "Synthetic level gate",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "synthetic.safety_clear",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify synthetic safety flag",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": true
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "synthetic.station_ready",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Prepare the synthetic station",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 2,
+        "description": "Free at least two slots",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 60,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "synthetic.carried_tool",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Bring one synthetic tool",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "synthetic.carried_input",
+          "comparison": "AT_LEAST",
+          "target": 3,
+          "description": "Bring three synthetic inputs for one exercise batch",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "synthetic.output",
+          "quantity": 1,
+          "basis": "per synthetic exercise batch"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "synthetic.output",
+          "comparison": "AT_LEAST",
+          "target": 5,
+          "description": "Stop when five synthetic outputs are observed",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.3,
+        "playStyle": "Synthetic relaxed practice",
+        "tickManipulation": false
+      },
+      "xpRate": {
+        "minimum": 105,
+        "maximum": 105,
+        "assumptions": "Invented XP/hour for tests only"
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 1,
+        "transitionMinutes": 12,
+        "inventoryDisruption": 0.1,
+        "assumptions": "Invented costs and normalized potential unlock value; no account inference"
+      },
+      "danger": "CAUTION",
+      "reason": "Synthetic ordering exercise only; never player advice"
+    },
+    {
+      "id": "synthetic.method.unlock",
+      "displayName": "Synthetic unlock exercise",
+      "category": "SYNTHETIC_TRAINING",
+      "activity": "synthetic.practice",
+      "start": {
+        "location": "Synthetic practice station",
+        "contact": "Synthetic guide",
+        "instruction": "Review the synthetic exercise card"
+      },
+      "hardRequirements": [
+        {
+          "fact": "synthetic.level",
+          "comparison": "AT_LEAST",
+          "target": 10,
+          "description": "Synthetic level gate",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "synthetic.safety_clear",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify synthetic safety flag",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": true
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "synthetic.station_ready",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Prepare the synthetic station",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 2,
+        "description": "Free at least two slots",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 60,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "synthetic.carried_tool",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Bring one synthetic tool",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "synthetic.carried_input",
+          "comparison": "AT_LEAST",
+          "target": 3,
+          "description": "Bring three synthetic inputs for one exercise batch",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "synthetic.output",
+          "quantity": 1,
+          "basis": "per synthetic exercise batch"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "synthetic.output",
+          "comparison": "AT_LEAST",
+          "target": 5,
+          "description": "Stop when five synthetic outputs are observed",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 60,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.3,
+        "playStyle": "Synthetic relaxed practice",
+        "tickManipulation": false
+      },
+      "xpRate": {
+        "minimum": 90,
+        "maximum": 90,
+        "assumptions": "Invented XP/hour for tests only"
+      },
+      "costs": {
+        "storageUnlockValue": 0.8,
+        "setupMinutes": 1,
+        "transitionMinutes": 1,
+        "inventoryDisruption": 0.1,
+        "assumptions": "Invented costs and normalized potential unlock value; no account inference"
+      },
+      "danger": "LOW",
+      "reason": "Synthetic ordering exercise only; never player advice"
+    }
+  ]
+}

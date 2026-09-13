@@ -54,6 +54,12 @@ RuneLite events / APIs
 
 ## Core modules
 
+### Implemented recommendation-domain foundation
+
+`data/MethodDefinitionLoader` validates a versioned synthetic JSON catalog into immutable `recommendation/MethodDefinition` values. `Requirement` evaluates a numeric fact with its existing `state/Observation` provenance and explicit freshness policy. `MethodEvaluator` separates hard blockers, missing preparation and unknown requirements. `MethodScorer` accepts explicit normalized inputs and returns a weighted breakdown only for available/preparable methods. Required unknown state cannot be offset by a high score.
+
+This is a domain-only scaffold. It does not read the RuneLite client, alter account observation, run at startup, select a live recommendation or render UI. Three fixture methods reside exclusively in test resources. A future thin adapter can project account snapshots into scoped facts without losing confidence or freshness; no such projection is guessed here. See the implemented v1 section of `DATA_SCHEMA.md` for the exact schema and scoring contract.
+
 ### 1. Account state
 
 Purpose: normalize observable RuneLite/game state into a stable model used by the rest of the plugin.

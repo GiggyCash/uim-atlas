@@ -63,7 +63,9 @@ Read these before making architectural changes:
 
 ## Status
 
-Pre-alpha. The first working plugin observes account state and shows account mode, state readiness, total level, and occupied inventory slots in a minimal sidebar. Recommendations and integrations are not implemented yet.
+Pre-alpha. The first working plugin observes account state and shows account mode, state readiness, total level, and occupied inventory slots in a minimal sidebar. The first authenticated live UIM smoke test passed through RuneLite and the Jagex Launcher, validating UIM detection, account-state loading, total level, inventory occupancy and sidebar behavior.
+
+A domain-only recommendation foundation now loads three synthetic test methods, evaluates hard requirements and missing preparation with explicit freshness, and scores eligible methods using visible placeholder weights. See [the implemented schema](DATA_SCHEMA.md#implemented-foundation-synthetic-method-schema-v1). Fixtures exist only in test resources and cannot load as production advice. Live recommendations, recommendation UI and integrations remain unimplemented.
 
 ## Local development
 
@@ -99,4 +101,4 @@ The observer follows the public [RuneLite API](https://github.com/runelite/runel
 4. Hop worlds, log out, switch accounts/profiles, and disable/re-enable the plugin. Check that old account values disappear and are re-observed. Other account modes should be labelled accurately, never as UIM.
 5. Toggle **Show sidebar** and verify that the navigation button disappears/reappears without duplicates.
 
-Automated tests cover normalization, unknown state, freshness, event coalescing, account resets, Guice injection, event subscription, and sidebar lifecycle with a mocked client. The development client has also been launched successfully, with RuneLite confirming the plugin loaded and running. Authenticated in-game checks still require the manual steps above. JDK 21 may produce upstream RuneLite reflection/LWJGL diagnostics during debug startup; these do not originate in UIM Atlas.
+Automated tests cover normalization, unknown state, freshness, event coalescing, account resets, Guice injection, event subscription, and sidebar lifecycle with a mocked client. Pure domain tests additionally cover method availability/preparation, safety-relevant unknowns, scoring tradeoffs and malformed resource validation. The first authenticated smoke test passed; repeat the manual steps above when changing live observation or sidebar behavior. JDK 21 may produce upstream RuneLite reflection/LWJGL diagnostics during debug startup; these do not originate in UIM Atlas.
