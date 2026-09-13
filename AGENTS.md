@@ -19,8 +19,21 @@ Before making architectural or product changes, read:
 3. `DATA_SCHEMA.md`
 4. `CODING_RULES.md`
 5. `ROADMAP.md`
+6. `PRIVACY.md`
 
 If code and these documents conflict, do not silently choose one. Prefer the documented product and architecture unless a deliberate repo update changes the contract.
+
+## Privacy is mandatory
+
+Do not commit personal information to this repository.
+
+- No real names, personal email addresses, phone numbers, home addresses, machine usernames, developer-specific home paths, device names, or personal RuneScape account names in source, tests, documentation, examples, fixtures, logs, or generated artifacts.
+- Use synthetic or neutral placeholders such as `ExamplePlayer`, `TestUim`, `/home/user/project`, `<username>`, and `<account-name>`.
+- Do not copy terminal output into the repository without removing personal or machine-specific identifiers.
+- Before committing, review changed files for accidental personal information.
+- If a feature appears to require committing identifying information, redesign it so that information remains outside the repository.
+
+`PRIVACY.md` contains the full repository privacy contract.
 
 ## Hard architecture rules
 
