@@ -172,6 +172,12 @@ This is not a full inventory simulator. It does not infer noted/unnoted equivale
 
 The five ordinary carried-input records deliberately attach no hourly XP range. Wiki per-action XP and recipes are retained in source notes, but an hourly rate depends on batching, unnoting/noting and setup that this snapshot does not establish. The MMM record also omits the published high-level Mixology rates because it covers one verified order rather than the full strategy. Its current-order requirement has a 30-second freshness limit; other Herblore observations use 300 seconds. Efficiency values are coarse editorial normalized inputs for an already-carried single batch, not XP conversions or universal cross-skill claims. External goal/storage/risk/uncertainty factors remain caller supplied.
 
+### RFD Skill Coverage Pack v1 (no schema change)
+
+Four additional catalogs use existing contracts: Mining (3), Fishing (2) and Agility (3) use v3; Crafting (3) uses v4 for carried glassmaking/glassblowing flows. The bundled `uimatlas/methods/catalogs.txt` lists all six method JSON resources. `ProductionMethodCatalog` validates index paths, delegates to `loadProduction`, rejects duplicate method IDs across files and returns immutable ID-sorted records. No filesystem scan, schema version bump or skill-specific registration is needed.
+
+The pack adds no hourly XP claims. Three optional rune-pickaxe profiles require current exact possession and level 41; eleven ordinary profiles retain the existing explicit verified-setup scoring convention. Unsupported capability declarations are not observations. See the [method, capacity, source and coverage audit](docs/rfd-skill-coverage-v1.md), including the distinction between five catalog-covered RFD skill families and four with currently observable ready setups.
+
 ### Production goals v1
 
 `src/main/resources/uimatlas/goals/recipe-for-disaster-v1.json` is the first separate goal resource. `GoalDefinitionLoader` accepts strict schema version `1` with `dataKind: PRODUCTION`, declared `facts`, and a nonempty `goals` array. Production method schema and `MethodDefinitionLoader` are unchanged.
@@ -212,7 +218,7 @@ Quest scores are produced only for ready handoffs with all five estimates presen
 
 Ordering is descending shared score, then ascending action-kind name, then ascending stable action ID. Unscored diagnostics follow using the same kind/ID rule. Selection takes the first scored, positive-relevance, actionable candidate; negative totals may win when they are the best eligible option. Readiness is a gate rather than an arbitrary scoring bonus. Exact ties currently put `METHOD` before `QUEST_MILESTONE`. Neither JSON insertion order nor fact/map order resolves ties. Goal data is loaded in its existing deterministic topological order before evaluation.
 
-The original `GoalContext` is retained in the result, including all method-only coverage gaps and zero-relevance catalog entries. Thus an unsupported Mining requirement stays a gap, while a defined, ready quest chapter can now offer a strategic action for a previously method-uncovered completion requirement. No unrelated training is substituted. These domain values do not authorize continued use after the snapshot becomes stale or the account changes.
+The original `GoalContext` is retained in the result, including all method-only coverage gaps and zero-relevance catalog entries. Thus a skill requirement without a currently supported matching method stays a gap, while a defined, ready quest chapter can now offer a strategic action for a previously method-uncovered completion requirement. No unrelated training is substituted. These domain values do not authorize continued use after the snapshot becomes stale or the account changes.
 
 #### Preparation feasibility and actionability
 

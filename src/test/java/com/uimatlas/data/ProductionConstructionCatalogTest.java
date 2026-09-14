@@ -306,14 +306,21 @@ public class ProductionConstructionCatalogTest
             assertFalse(entries.stream().anyMatch(name -> name.toLowerCase(java.util.Locale.ROOT).contains("synthetic")));
             Path base = Path.of(System.getProperty("testClassesDirectory"));
             classes.filter(Files::isRegularFile).forEach(path -> assertFalse(entries.contains(base.relativize(path).toString().replace('\\', '/'))));
-            List<String> catalogs = entries.stream().filter(name -> name.startsWith("uimatlas/methods/") && !name.endsWith("/"))
+            List<String> catalogs = entries.stream().filter(name -> name.startsWith("uimatlas/methods/") && name.endsWith(".json"))
                 .sorted().collect(Collectors.toList());
-            assertEquals(List.of(CATALOG.substring(1), ProductionHerbloreCatalogTest.CATALOG.substring(1)), catalogs);
+            assertEquals(ProductionSkillCoverageCatalogTest.CATALOG_COUNTS.keySet().stream()
+                .map(name -> "uimatlas/methods/" + name).sorted().collect(Collectors.toList()), catalogs);
+            assertTrue(entries.contains("uimatlas/methods/catalogs.txt"));
+            try (java.io.BufferedReader index = new java.io.BufferedReader(new InputStreamReader(
+                jar.getInputStream(jar.getJarEntry("uimatlas/methods/catalogs.txt")), StandardCharsets.UTF_8)))
+            {
+                assertEquals(catalogs, index.lines().sorted().collect(Collectors.toList()));
+            }
             for (String path : catalogs)
             {
                 try (InputStreamReader reader = new InputStreamReader(jar.getInputStream(jar.getJarEntry(path)), StandardCharsets.UTF_8))
                 {
-                    int expected = path.equals(CATALOG.substring(1)) ? 3 : 6;
+                    int expected = ProductionSkillCoverageCatalogTest.CATALOG_COUNTS.get(path.substring("uimatlas/methods/".length()));
                     assertEquals(expected, new MethodDefinitionLoader().loadProduction(reader, canonicalItems()).size());
                 }
             }

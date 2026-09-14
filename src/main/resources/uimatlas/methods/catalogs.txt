@@ -1,0 +1,6 @@
+uimatlas/methods/agility-v1.json
+uimatlas/methods/construction-v1.json
+uimatlas/methods/crafting-v1.json
+uimatlas/methods/fishing-v1.json
+uimatlas/methods/herblore-v1.json
+uimatlas/methods/mining-v1.json

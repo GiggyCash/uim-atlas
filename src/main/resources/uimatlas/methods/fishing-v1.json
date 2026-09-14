@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 3,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {
+      "id": "inventory.free_slots"
+    },
+    {
+      "id": "inventory.item.1929.quantity"
+    },
+    {
+      "id": "inventory.item.2347.quantity"
+    },
+    {
+      "id": "inventory.item.309.quantity"
+    },
+    {
+      "id": "inventory.item.311.quantity"
+    },
+    {
+      "id": "inventory.item.314.quantity"
+    },
+    {
+      "id": "inventory.item.954.quantity"
+    },
+    {
+      "id": "skill.fishing.level"
+    }
+  ],
+  "methods": [
+    {
+      "id": "method.fishing.fly_barbarian_village",
+      "displayName": "Fly fish at Barbarian Village",
+      "category": "TRAINING",
+      "activity": "FISHING",
+      "start": {
+        "location": "River Lum east of Barbarian Village",
+        "contact": "Lure fishing spots",
+        "instruction": "Fish using the carried fly fishing rod and feathers. Stop for an inventory recheck when full; cooking, dropping and resupply are outside this record."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.fishing.level",
+          "comparison": "AT_LEAST",
+          "target": 20,
+          "description": "Unboosted level 20 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 1,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.309.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Currently carried fly fishing rod.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "inventory.item.314.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "At least one feather for the next catch; this is not a session supply budget.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.fishing.level",
+          "comparison": "AT_LEAST",
+          "target": 53,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.free_slots",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Pause when ordinary inventory fills; reassess without assuming anything can be dropped, stored or sold.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.314.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Recheck when carried feathers run out.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.45,
+        "playStyle": "Relaxed",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "A small existing rod-and-feather setup can be ready while a minigame loadout remains unresolved.",
+      "optionalSetup": [],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.fishing.fly_barbarian_village.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.item.309.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Currently carried fly fishing rod.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.314.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "At least one feather for the next catch; this is not a session supply budget.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.5,
+          "notes": "Conventional rod/feather start with room for a catch. Random fish outcomes and future disposal are not a bounded deterministic flow. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Fishing",
+          "reviewedAt": "2026-09-14",
+          "notes": "Fly fishing is preferred over Barbarian Fishing before 58; the village fire is an optional Cooking opportunity, not automatic secondary progress."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Fishing",
+          "reviewedAt": "2026-09-14",
+          "notes": "Lure fishing uses a fly fishing rod and feathers; trout unlock at 20 and salmon join the catch at 30."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    },
+    {
+      "id": "method.fishing.tempoross_mass",
+      "displayName": "Tempoross with the ordinary mass-world loadout",
+      "category": "TRAINING",
+      "activity": "FISHING",
+      "start": {
+        "location": "Tempoross Cove via the Ruins of Unkah",
+        "contact": "Tempoross boarding boat",
+        "instruction": "Begin the ordinary group activity with a harpoon, rope, hammer and two filled water buckets. Tools can be obtained within the activity, but acquisition is not assumed complete. Use the activity guide for execution."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.fishing.level",
+          "comparison": "AT_LEAST",
+          "target": 35,
+          "description": "Unboosted level 35 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 7,
+        "description": "Seven ordinary free positions for the modeled seven-fish opening batch, an explicit strategy scope rather than a universal participation gate.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.311.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary carried harpoon for this loadout.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.954.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "One carried rope for tethering.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.2347.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "One carried hammer for repairs.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.1929.quantity",
+          "comparison": "AT_LEAST",
+          "target": 2,
+          "description": "Two carried filled water buckets for the modeled loadout.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.fishing.level",
+          "comparison": "AT_LEAST",
+          "target": 53,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.7,
+        "playStyle": "Focused",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "Uses a larger prepared working batch and gives Fishing training plus reward opportunities without a banked loadout.",
+      "optionalSetup": [],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.fishing.tempoross_mass.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.item.311.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Ordinary carried harpoon for this loadout.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.954.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One carried rope for tethering.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.2347.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One carried hammer for repairs.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.1929.quantity",
+              "comparison": "AT_LEAST",
+              "target": 2,
+              "description": "Two carried filled water buckets for the modeled loadout.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 7,
+              "description": "Seven ordinary free positions for the modeled seven-fish opening batch, an explicit strategy scope rather than a universal participation gate.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.6,
+          "notes": "Verified ordinary mass-world loadout and opening payload. No solo, special-harpoon, outfit or full-session benchmark is assumed. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Fishing",
+          "reviewedAt": "2026-09-14",
+          "notes": "Tempoross is available at 35 Fishing; rewards may later supply Cooking resources. No reward roll or secondary skill credit is assumed."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Tempoross",
+          "reviewedAt": "2026-09-14",
+          "notes": "The activity requires 35 Fishing and does not damage Hitpoints; minigame supplies can still be lost to hazards."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Tempoross/Strategies",
+          "reviewedAt": "2026-09-14",
+          "notes": "Ordinary recommended setup: harpoon, one rope, one hammer, two water buckets. The reviewed low-level mass strategy begins by catching and cooking seven fish. Seven free slots scopes that starting batch, not the participation minimum or a full round."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    }
+  ]
+}

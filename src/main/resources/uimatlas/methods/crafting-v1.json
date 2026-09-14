@@ -1,0 +1,510 @@
+{
+  "schemaVersion": 4,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {
+      "id": "inventory.free_slots"
+    },
+    {
+      "id": "inventory.item.1775.occupied_slots"
+    },
+    {
+      "id": "inventory.item.1775.quantity"
+    },
+    {
+      "id": "inventory.item.1781.occupied_slots"
+    },
+    {
+      "id": "inventory.item.1781.quantity"
+    },
+    {
+      "id": "inventory.item.1783.occupied_slots"
+    },
+    {
+      "id": "inventory.item.1783.quantity"
+    },
+    {
+      "id": "inventory.item.1785.quantity"
+    },
+    {
+      "id": "inventory.item.1925.occupied_slots"
+    },
+    {
+      "id": "inventory.item.1925.quantity"
+    },
+    {
+      "id": "inventory.item.229.occupied_slots"
+    },
+    {
+      "id": "inventory.item.229.quantity"
+    },
+    {
+      "id": "inventory.item.4525.occupied_slots"
+    },
+    {
+      "id": "inventory.item.4525.quantity"
+    },
+    {
+      "id": "skill.crafting.level"
+    }
+  ],
+  "methods": [
+    {
+      "id": "method.crafting.molten_glass",
+      "displayName": "Make molten glass at the Edgeville furnace",
+      "category": "PROCESSING",
+      "activity": "CRAFTING",
+      "start": {
+        "location": "Edgeville furnace",
+        "contact": "Furnace",
+        "instruction": "Process only the exact loose materials already carried. Stop when those inputs are exhausted; no shop, unnoting, acquisition or disposal loop is modeled."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.crafting.level",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Unboosted level 1 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "No additional empty slot: the bounded flow checks directly observed input and output positions, including the returned bucket.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [
+        {
+          "fact": "inventory.item.1783.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "One loose bucket of sand.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        },
+        {
+          "fact": "inventory.item.1781.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "One loose soda ash.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "inventory.item.1775.quantity",
+          "quantity": 1,
+          "basis": "One molten glass. Per single processing action.",
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        },
+        {
+          "resourceId": "inventory.item.1925.quantity",
+          "quantity": 1,
+          "basis": "One returned empty bucket. Per single processing action.",
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "skill.crafting.level",
+          "comparison": "AT_LEAST",
+          "target": 40,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.1783.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Recheck when this loose carried input is exhausted.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.1781.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Recheck when this loose carried input is exhausted.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.35,
+        "playStyle": "Relaxed",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "Use carried materials for a bounded Crafting action, preserving output positions without bank or storage assumptions.",
+      "optionalSetup": [],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.crafting.molten_glass.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.item.1783.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One loose bucket of sand.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.1781.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One loose soda ash.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.3,
+          "notes": "Verified carried single-action setup. Glassblowing tiers reflect sourced per-action progression; no charter-loop or bank-based hourly rate. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Crafting",
+          "reviewedAt": "2026-09-14",
+          "notes": "Glass production and blowing are established UIM training components; charter purchases, travel loops and death-storage suggestions are excluded from this carried-input scope."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Molten_glass",
+          "reviewedAt": "2026-09-14",
+          "notes": "Recipe and unboosted level checked. Furnace glass also returns the empty bucket; glassblowing needs a pipe and replaces one loose glass with one non-stackable product."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Crafting",
+          "reviewedAt": "2026-09-14",
+          "notes": "The noted-sand furnace loop explicitly includes empty buckets after glassmaking; this flow retains that bucket rather than assuming disposal."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Edgeville",
+          "reviewedAt": "2026-09-14",
+          "notes": "The furnace has required no Varrock Diary since 9 April 2015. Public destination metadata does not assert current position or a verified route."
+        }
+      ]
+    },
+    {
+      "id": "method.crafting.oil_lamp",
+      "displayName": "Blow carried molten glass into empty oil lamps",
+      "category": "PROCESSING",
+      "activity": "CRAFTING",
+      "start": {
+        "location": "Current location",
+        "contact": "Inventory glassblowing pipe",
+        "instruction": "Process only the exact loose materials already carried. Stop when those inputs are exhausted; no shop, unnoting, acquisition or disposal loop is modeled."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.crafting.level",
+          "comparison": "AT_LEAST",
+          "target": 12,
+          "description": "Unboosted level 12 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "No additional empty slot: the bounded flow checks directly observed input and output positions, including the returned bucket.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.1785.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Carried ordinary glassblowing pipe.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "inventory.item.1775.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "One loose molten glass.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "inventory.item.4525.quantity",
+          "quantity": 1,
+          "basis": "One empty oil lamp. Per single processing action.",
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "skill.crafting.level",
+          "comparison": "AT_LEAST",
+          "target": 40,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.1775.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Recheck when this loose carried input is exhausted.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.35,
+        "playStyle": "Relaxed",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "Use carried materials for a bounded Crafting action, preserving output positions without bank or storage assumptions.",
+      "optionalSetup": [],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.crafting.oil_lamp.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.item.1775.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One loose molten glass.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.1785.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Carried ordinary glassblowing pipe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.4,
+          "notes": "Verified carried single-action setup. Glassblowing tiers reflect sourced per-action progression; no charter-loop or bank-based hourly rate. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Crafting",
+          "reviewedAt": "2026-09-14",
+          "notes": "Glass production and blowing are established UIM training components; charter purchases, travel loops and death-storage suggestions are excluded from this carried-input scope."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Empty_oil_lamp",
+          "reviewedAt": "2026-09-14",
+          "notes": "Recipe and unboosted level checked. Furnace glass also returns the empty bucket; glassblowing needs a pipe and replaces one loose glass with one non-stackable product."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    },
+    {
+      "id": "method.crafting.vial",
+      "displayName": "Blow carried molten glass into vials",
+      "category": "PROCESSING",
+      "activity": "CRAFTING",
+      "start": {
+        "location": "Current location",
+        "contact": "Inventory glassblowing pipe",
+        "instruction": "Process only the exact loose materials already carried. Stop when those inputs are exhausted; no shop, unnoting, acquisition or disposal loop is modeled."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.crafting.level",
+          "comparison": "AT_LEAST",
+          "target": 33,
+          "description": "Unboosted level 33 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "No additional empty slot: the bounded flow checks directly observed input and output positions, including the returned bucket.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.1785.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Carried ordinary glassblowing pipe.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "inventory.item.1775.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "One loose molten glass.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "inventory.item.229.quantity",
+          "quantity": 1,
+          "basis": "One empty vial. Per single processing action.",
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "skill.crafting.level",
+          "comparison": "AT_LEAST",
+          "target": 40,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.1775.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Recheck when this loose carried input is exhausted.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.35,
+        "playStyle": "Relaxed",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "Use carried materials for a bounded Crafting action, preserving output positions without bank or storage assumptions.",
+      "optionalSetup": [],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.crafting.vial.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.item.1775.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One loose molten glass.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.1785.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Carried ordinary glassblowing pipe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.55,
+          "notes": "Verified carried single-action setup. Glassblowing tiers reflect sourced per-action progression; no charter-loop or bank-based hourly rate. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Crafting",
+          "reviewedAt": "2026-09-14",
+          "notes": "Glass production and blowing are established UIM training components; charter purchases, travel loops and death-storage suggestions are excluded from this carried-input scope."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Vial",
+          "reviewedAt": "2026-09-14",
+          "notes": "Recipe and unboosted level checked. Furnace glass also returns the empty bucket; glassblowing needs a pipe and replaces one loose glass with one non-stackable product."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    }
+  ]
+}

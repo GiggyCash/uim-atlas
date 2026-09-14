@@ -1,0 +1,555 @@
+{
+  "schemaVersion": 3,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {
+      "id": "capability.access.cam_torum_mine"
+    },
+    {
+      "id": "capability.activity.star.accessible_layer"
+    },
+    {
+      "id": "capability.tool.usable_pickaxe"
+    },
+    {
+      "id": "carried.item.1275.quantity"
+    },
+    {
+      "id": "inventory.free_slots"
+    },
+    {
+      "id": "skill.mining.level"
+    }
+  ],
+  "methods": [
+    {
+      "id": "method.mining.iron_mount_karuulm",
+      "displayName": "Mine iron at Mount Karuulm mine",
+      "category": "TRAINING",
+      "activity": "MINING",
+      "start": {
+        "location": "Mount Karuulm surface mine",
+        "contact": "Three adjacent iron rocks",
+        "instruction": "Mine the surface iron rocks with a currently usable pickaxe. Pause when inventory fills; no sustained powermining/disposal loop is modeled."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.mining.level",
+          "comparison": "AT_LEAST",
+          "target": 15,
+          "description": "Unboosted level 15 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "capability.tool.usable_pickaxe",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 1,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.mining.level",
+          "comparison": "AT_LEAST",
+          "target": 50,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.free_slots",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Pause when ordinary inventory fills; reassess without assuming anything can be dropped, stored or sold.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.8,
+        "playStyle": "Focused",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "A compact, active iron-mining start when a usable pickaxe and ordinary capacity are verified.",
+      "optionalSetup": [
+        {
+          "fact": "carried.item.1275.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional exact rune pickaxe carried or equipped; does not replace the independent proof of a usable tool.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.mining.iron_mount_karuulm.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "capability.tool.usable_pickaxe",
+              "comparison": "EQUAL",
+              "target": 1,
+              "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.45,
+          "notes": "Ordinary currently usable pickaxe and space; no tick manipulation or continuous-disposal rate. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        },
+        {
+          "id": "profile.mining.iron_mount_karuulm.rune",
+          "priority": 1,
+          "requirements": [
+            {
+              "fact": "carried.item.1275.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Optional exact rune pickaxe carried or equipped; does not replace the independent proof of a usable tool.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 41,
+              "description": "Real level needed to use the exact rune pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.6,
+          "notes": "Rune pickaxe has a shorter mining roll cycle than lower-tier ordinary tools. Editorial normalized hint; no XP/hour forecast. Selection still requires every activity and preparation check."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Iron mining is recommended before granite and remains a useful non-tick-manipulation option. Scope stops before disposal."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Iron_rocks",
+          "reviewedAt": "2026-09-14",
+          "notes": "Iron requires 15 Mining and a pickaxe; Mount Karuulm has iron rocks."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Mount Karuulm has a three-rock iron formation; tool usability includes its own level and charge requirements."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Pickaxe table: rune requires 41 Mining; carrying a usable tool does not require the Attack level needed to equip it."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    },
+    {
+      "id": "method.mining.calcified_cam_torum",
+      "displayName": "Mine calcified rocks in Cam Torum",
+      "category": "TRAINING",
+      "activity": "MINING",
+      "start": {
+        "location": "Cam Torum mine",
+        "contact": "Calcified rocks",
+        "instruction": "Mine normally without tick manipulation. Recheck capacity as deposits arrive; processing deposits and bone shards is outside this activity."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.mining.level",
+          "comparison": "AT_LEAST",
+          "target": 41,
+          "description": "Unboosted level 41 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.access.cam_torum_mine",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify access reached during Perilous Moons; not merely quest-start status. No current provider.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "capability.tool.usable_pickaxe",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 1,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.mining.level",
+          "comparison": "AT_LEAST",
+          "target": 50,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.free_slots",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Pause when ordinary inventory fills; reassess without assuming anything can be dropped, stored or sold.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.25,
+        "playStyle": "Relaxed",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "Low-attention Mining with stackable bone shards when access and a usable pickaxe are already verified.",
+      "optionalSetup": [
+        {
+          "fact": "carried.item.1275.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional exact rune pickaxe carried or equipped; does not replace the independent proof of a usable tool.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.mining.calcified_cam_torum.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "capability.tool.usable_pickaxe",
+              "comparison": "EQUAL",
+              "target": 1,
+              "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.3,
+          "notes": "Ordinary currently usable pickaxe and space; no tick manipulation or continuous-disposal rate. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        },
+        {
+          "id": "profile.mining.calcified_cam_torum.rune",
+          "priority": 1,
+          "requirements": [
+            {
+              "fact": "carried.item.1275.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Optional exact rune pickaxe carried or equipped; does not replace the independent proof of a usable tool.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 41,
+              "description": "Real level needed to use the exact rune pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.4,
+          "notes": "Rune pickaxe has a shorter mining roll cycle than lower-tier ordinary tools. Editorial normalized hint; no XP/hour forecast. Selection still requires every activity and preparation check."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Calcified rocks are a UIM option from 41 Mining after partial Perilous Moons; passive bone shards are resources, not awarded Prayer XP."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Calcified_rocks",
+          "reviewedAt": "2026-09-14",
+          "notes": "At least one ordinary empty slot is required even with a bone-shard stack. Deposits and other drops can fill inventory."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Cam_Torum_mine",
+          "reviewedAt": "2026-09-14",
+          "notes": "Access requires partial completion of Perilous Moons; a started quest alone must not imply reaching the mine."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Pickaxe table: rune requires 41 Mining; carrying a usable tool does not require the Attack level needed to equip it."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    },
+    {
+      "id": "method.mining.shooting_star",
+      "displayName": "Mine a verified accessible crashed star",
+      "category": "TRAINING",
+      "activity": "MINING",
+      "start": {
+        "location": "Currently verified non-Wilderness star site",
+        "contact": "Crashed star",
+        "instruction": "Use only a currently verified accessible non-Wilderness star whose layer is within the real Mining level. Recheck when the star disappears or capacity fills; no star finding or travel is inferred."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.mining.level",
+          "comparison": "AT_LEAST",
+          "target": 10,
+          "description": "Unboosted level 10 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.activity.star.accessible_layer",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify a present reachable non-Wilderness star and a layer within the observed real Mining level on this world. No current provider.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 30,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "capability.tool.usable_pickaxe",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 1,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.mining.level",
+          "comparison": "AT_LEAST",
+          "target": 50,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.free_slots",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Pause when ordinary inventory fills; reassess without assuming anything can be dropped, stored or sold.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.1,
+        "playStyle": "Relaxed",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "A low-attention alternative with compact stardust when an eligible star has actually been verified.",
+      "optionalSetup": [
+        {
+          "fact": "carried.item.1275.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional exact rune pickaxe carried or equipped; does not replace the independent proof of a usable tool.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.mining.shooting_star.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "capability.tool.usable_pickaxe",
+              "comparison": "EQUAL",
+              "target": 1,
+              "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.3,
+          "notes": "Ordinary currently usable pickaxe and space; no tick manipulation or continuous-disposal rate. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        },
+        {
+          "id": "profile.mining.shooting_star.rune",
+          "priority": 1,
+          "requirements": [
+            {
+              "fact": "carried.item.1275.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Optional exact rune pickaxe carried or equipped; does not replace the independent proof of a usable tool.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 41,
+              "description": "Real level needed to use the exact rune pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.4,
+          "notes": "Rune pickaxe has a shorter mining roll cycle than lower-tier ordinary tools. Editorial normalized hint; no XP/hour forecast. Selection still requires every activity and preparation check."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Star Mining is an idle UIM option. High-level continuous-mining rates are not applicable to the RFD-level scoped start."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Shooting_Stars",
+          "reviewedAt": "2026-09-14",
+          "notes": "Each layer requires ten Mining levels per size. Stardust is stackable; incidental gems can require space. Availability, access and layer eligibility require current verification."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Mining",
+          "reviewedAt": "2026-09-14",
+          "notes": "Pickaxe table: rune requires 41 Mining; carrying a usable tool does not require the Attack level needed to equip it."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ]
+    }
+  ]
+}

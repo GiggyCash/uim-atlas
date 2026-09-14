@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 3,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {
+      "id": "capability.quest.priest_in_peril.complete"
+    },
+    {
+      "id": "capability.setup.agility.failure_recovery"
+    },
+    {
+      "id": "capability.setup.agility.run_support"
+    },
+    {
+      "id": "inventory.free_slots"
+    },
+    {
+      "id": "skill.agility.level"
+    }
+  ],
+  "methods": [
+    {
+      "id": "method.agility.draynor_rooftop",
+      "displayName": "Draynor Village Rooftop Course",
+      "category": "TRAINING",
+      "activity": "AGILITY",
+      "start": {
+        "location": "Draynor Village",
+        "contact": "Rough wall beside the wheat field north of the bank",
+        "instruction": "Begin at the rough wall. Recheck at the goal target or a natural lap boundary."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.agility.level",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Unboosted level 1 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.agility.level",
+          "comparison": "AT_LEAST",
+          "target": 48,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.6,
+        "playStyle": "Focused",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "LOW",
+      "reason": "Inventory-light lap training; marks are optional rewards, not assumed inventory space or an automatic unlock.",
+      "optionalSetup": [
+        {
+          "fact": "capability.setup.agility.run_support",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Optional verified run-energy/weight support; absence or unknown never prevents ordinary laps.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.agility.draynor_rooftop.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 0,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.3,
+          "notes": "Ordinary lap setup verified; no graceful/run-support optimization or promise of sustained rates. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Agility",
+          "reviewedAt": "2026-09-14",
+          "notes": "Rooftops are UIM-friendly with little inventory setup. Weight, run support and failure recovery affect sustained performance; none is assumed."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Draynor_Village_Rooftop_Course",
+          "reviewedAt": "2026-09-14",
+          "notes": "Current course entry is 1 Agility. Start landmark checked against this page. No sustained XP/hour forecast is attached."
+        }
+      ]
+    },
+    {
+      "id": "method.agility.varrock_rooftop",
+      "displayName": "Varrock Rooftop Course",
+      "category": "TRAINING",
+      "activity": "AGILITY",
+      "start": {
+        "location": "Varrock",
+        "contact": "Rough wall east of the general store",
+        "instruction": "Begin at the rough wall. Falls can cause damage; pause to reassess health after failures."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.agility.level",
+          "comparison": "AT_LEAST",
+          "target": 30,
+          "description": "Unboosted level 30 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.agility.level",
+          "comparison": "AT_LEAST",
+          "target": 48,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.6,
+        "playStyle": "Focused",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "CAUTION",
+      "reason": "Inventory-light lap training; marks are optional rewards, not assumed inventory space or an automatic unlock.",
+      "optionalSetup": [
+        {
+          "fact": "capability.setup.agility.run_support",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Optional verified run-energy/weight support; absence or unknown never prevents ordinary laps.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.setup.agility.failure_recovery",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Optional carried recovery support for repeated fall damage; current health and continued-session safety are not established by this record.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.agility.varrock_rooftop.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 0,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.45,
+          "notes": "Ordinary lap setup verified; no graceful/run-support optimization or promise of sustained rates. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Agility",
+          "reviewedAt": "2026-09-14",
+          "notes": "Rooftops are UIM-friendly with little inventory setup. Weight, run support and failure recovery affect sustained performance; none is assumed."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Varrock_Rooftop_Course",
+          "reviewedAt": "2026-09-14",
+          "notes": "Current course entry is 30 Agility. Start landmark checked against this page. No sustained XP/hour forecast is attached."
+        }
+      ]
+    },
+    {
+      "id": "method.agility.canifis_rooftop",
+      "displayName": "Canifis Rooftop Course",
+      "category": "TRAINING",
+      "activity": "AGILITY",
+      "start": {
+        "location": "Canifis",
+        "contact": "Tall tree north of the bank",
+        "instruction": "Begin at the tall tree after verified access. Falls can cause damage; pause to reassess health after failures."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.agility.level",
+          "comparison": "AT_LEAST",
+          "target": 40,
+          "description": "Unboosted level 40 required for this activity.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.quest.priest_in_peril.complete",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Verify Priest in Peril completion for Canifis access. No current capability provider; quest observations are not automatically aliased.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "skill.agility.level",
+          "comparison": "AT_LEAST",
+          "target": 48,
+          "description": "Re-evaluate at the current RFD unboosted skill target; this is a review boundary, not another goal.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.6,
+        "playStyle": "Focused",
+        "tickManipulation": false
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Fixed travel/setup times and disruption are unestimated neutral metadata. Existing scoring derives actual missing preparation and capacity pressure. Attention and normalized efficiency are editorial hints, not measured rates."
+      },
+      "danger": "CAUTION",
+      "reason": "Inventory-light lap training; marks are optional rewards, not assumed inventory space or an automatic unlock.",
+      "optionalSetup": [
+        {
+          "fact": "capability.setup.agility.run_support",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Optional verified run-energy/weight support; absence or unknown never prevents ordinary laps.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.setup.agility.failure_recovery",
+          "comparison": "EQUAL",
+          "target": 1,
+          "description": "Optional carried recovery support for repeated fall damage; current health and continued-session safety are not established by this record.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.agility.canifis_rooftop.ordinary",
+          "priority": 0,
+          "requirements": [
+            {
+              "fact": "inventory.free_slots",
+              "comparison": "AT_LEAST",
+              "target": 0,
+              "description": "Ordinary empty positions for the scoped start; no storage, disposal or future slot release is assumed.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.6,
+          "notes": "Ordinary lap setup verified; no graceful/run-support optimization or promise of sustained rates. Coarse editorial efficiency for this verified setup, not XP/hour or a cross-skill speed claim."
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Agility",
+          "reviewedAt": "2026-09-14",
+          "notes": "Rooftops are UIM-friendly with little inventory setup. Weight, run support and failure recovery affect sustained performance; none is assumed."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Canifis_Rooftop_Course",
+          "reviewedAt": "2026-09-14",
+          "notes": "Current course entry is 40 Agility. Start landmark checked against this page. No sustained XP/hour forecast is attached."
+        }
+      ]
+    }
+  ]
+}
