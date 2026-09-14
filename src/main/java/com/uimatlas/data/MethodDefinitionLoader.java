@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.Set;
 import static com.uimatlas.data.DefinitionJson.require;
 
-/** Separate, strict entry points for bundled production v3 and synthetic v1. The caller owns the reader. */
+/** Separate, strict entry points for bundled production v3/v4 and synthetic v1. The caller owns the reader. */
 public final class MethodDefinitionLoader
 {
     public List<MethodDefinition> loadSynthetic(Reader input)
@@ -34,7 +34,9 @@ public final class MethodDefinitionLoader
         try
         {
             DefinitionJson root = DefinitionJson.read(input).fields("schemaVersion", "dataKind", "facts", "methods");
-            require(root.integer("schemaVersion", Integer.MAX_VALUE) == (production ? 3 : 1), "$.schemaVersion: unsupported version");
+            int schemaVersion = root.integer("schemaVersion", Integer.MAX_VALUE);
+            require(production ? schemaVersion == 3 || schemaVersion == 4 : schemaVersion == 1,
+                "$.schemaVersion: unsupported version");
             String kind = production ? "PRODUCTION" : "SYNTHETIC_TEST_ONLY";
             require(root.text("dataKind").equals(kind), "$.dataKind: expected " + kind);
             if (production)
@@ -63,7 +65,8 @@ public final class MethodDefinitionLoader
                 return id;
             });
             Set<String> ids = new HashSet<>();
-            List<MethodDefinition> methods = root.list("methods", method -> parseMethod(method, facts, ids, production));
+            List<MethodDefinition> methods = root.list("methods",
+                method -> parseMethod(method, facts, ids, production, schemaVersion));
             require(!methods.isEmpty(), "$.methods: expected at least one method");
             return methods;
         }
@@ -73,7 +76,8 @@ public final class MethodDefinitionLoader
         }
     }
 
-    private MethodDefinition parseMethod(DefinitionJson method, Set<String> facts, Set<String> ids, boolean production)
+    private MethodDefinition parseMethod(DefinitionJson method, Set<String> facts, Set<String> ids,
+        boolean production, int schemaVersion)
     {
         List<String> fields = new ArrayList<>(Arrays.asList("id", "displayName", "category", "activity", "start", "hardRequirements", "preparation",
             "freeInventorySlots", "setupItems", "consumes", "produces", "stopConditions", "style", "xpRate", "costs", "danger", "reason"));
@@ -96,7 +100,10 @@ public final class MethodDefinitionLoader
         List<Requirement> hard = method.list("hardRequirements", value -> requirement(value, facts));
         List<Requirement> prep = method.list("preparation", value -> requirement(value, facts));
         List<Requirement> setup = method.list("setupItems", value -> quantityRequirement(value, facts));
-        List<Requirement> consumes = method.list("consumes", value -> quantityRequirement(value, facts));
+        boolean resourceFlow = production && schemaVersion == 4;
+        List<Requirement> consumes = method.list("consumes", value -> quantityRequirement(value, facts, resourceFlow));
+        List<MethodDefinition.ResourceAmount> produces = method.list("produces",
+            value -> resource(value, facts, resourceFlow));
         Requirement slots = requirement(method.child("freeInventorySlots"), facts);
         require(slots.getFact().equals("inventory.free_slots") && slots.getComparison() == Requirement.Comparison.AT_LEAST
             && slots.getTarget() == Math.rint(slots.getTarget()), method.at("freeInventorySlots") + ": expected integer free-slot minimum");
@@ -124,7 +131,7 @@ public final class MethodDefinitionLoader
         require(!production || !sources.isEmpty(), method.at("sources") + ": production requires source metadata");
         return new MethodDefinition(id, name, method.text("category"), method.text("activity"),
             new MethodDefinition.Start(start.text("location"), start.text("contact"), start.text("instruction")),
-            hard, prep, slots, setup, consumes, method.list("produces", value -> resource(value, facts)), stops,
+            hard, prep, slots, setup, consumes, produces, stops,
             new MethodDefinition.Style(style.number("attention", 0, 1), style.text("playStyle"), style.bool("tickManipulation")),
             production ? null : xpRate(method.child("xpRate")),
             new MethodDefinition.Costs(costs.number("storageUnlockValue", 0, 1), costs.number("setupMinutes", 0, Double.MAX_VALUE),
@@ -132,7 +139,10 @@ public final class MethodDefinitionLoader
             method.choice("danger", MethodDefinition.Danger.class), method.text("reason"),
             production ? MethodDefinition.DataKind.PRODUCTION : MethodDefinition.DataKind.SYNTHETIC_TEST_ONLY, optional, sources,
             production ? diagnosticRequirements(method, "workingCapacity", facts) : List.of(),
-            production ? profiles(method, facts) : List.of());
+            production ? profiles(method, facts) : List.of(),
+            resourceFlow ? Optional.of(ResourceFlowJson.parse(method, facts, slots,
+                value -> quantityRequirement(value, facts, true), value -> resource(value, facts, true)))
+                : Optional.empty());
     }
 
     private MethodDefinition.XpRate xpRate(DefinitionJson xp)
@@ -179,7 +189,16 @@ public final class MethodDefinitionLoader
 
     private Requirement requirement(DefinitionJson value, Set<String> facts)
     {
-        value.fields("fact", "comparison", "target", "description", "allowLastObserved", "maxAgeSeconds", "safetyRelevant");
+        return requirement(value, facts, false);
+    }
+
+    private Requirement requirement(DefinitionJson value, Set<String> facts, boolean slotSemantics)
+    {
+        value.fields(slotSemantics
+            ? new String[] {"fact", "comparison", "target", "description", "allowLastObserved",
+                "maxAgeSeconds", "safetyRelevant", "slotSemantics"}
+            : new String[] {"fact", "comparison", "target", "description", "allowLastObserved",
+                "maxAgeSeconds", "safetyRelevant"});
         String fact = reference(value, "fact", facts);
         boolean safety = value.bool("safetyRelevant");
         boolean allowLast = value.bool("allowLastObserved");
@@ -189,7 +208,8 @@ public final class MethodDefinitionLoader
         {
             require(target >= 1 && target <= 99 && target == Math.rint(target), value.at("target") + ": invalid level range");
         }
-        if (fact.equals("inventory.free_slots") || fact.equals("inventory.occupied_slots") || fact.endsWith(".usable_slots"))
+        if (fact.equals("inventory.free_slots") || fact.equals("inventory.occupied_slots")
+            || fact.endsWith(".usable_slots") || fact.endsWith(".occupied_slots"))
         {
             require(target <= 28 && target == Math.rint(target), value.at("target") + ": invalid slot range");
         }
@@ -209,6 +229,7 @@ public final class MethodDefinitionLoader
     {
         if (id.matches("(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.quantity")
             || id.matches("inventory\\.item\\.(0|[1-9][0-9]*)\\.usable_slots")
+            || id.matches("inventory\\.item\\.(0|[1-9][0-9]*)\\.occupied_slots")
             || id.matches("container\\.[a-z][a-z0-9_]*\\.contents\\.(0|[1-9][0-9]*)\\.quantity"))
         {
             String number = id.split("\\.")[id.startsWith("container.") ? 3 : 2];
@@ -244,17 +265,28 @@ public final class MethodDefinitionLoader
 
     private Requirement quantityRequirement(DefinitionJson value, Set<String> facts)
     {
-        Requirement requirement = requirement(value, facts);
+        return quantityRequirement(value, facts, false);
+    }
+
+    private Requirement quantityRequirement(DefinitionJson value, Set<String> facts, boolean slotSemantics)
+    {
+        Requirement requirement = requirement(value, facts, slotSemantics);
         require(requirement.getComparison() == Requirement.Comparison.AT_LEAST && requirement.getTarget() > 0
             && requirement.getTarget() == Math.rint(requirement.getTarget()), value.at("target") + ": expected positive integer AT_LEAST quantity");
         return requirement;
     }
 
-    private MethodDefinition.ResourceAmount resource(DefinitionJson value, Set<String> facts)
+    private MethodDefinition.ResourceAmount resource(DefinitionJson value, Set<String> facts, boolean slotSemantics)
     {
-        value.fields("resourceId", "quantity", "basis");
-        return new MethodDefinition.ResourceAmount(reference(value, "resourceId", facts),
-            value.number("quantity", Double.MIN_VALUE, Double.MAX_VALUE), value.text("basis"));
+        value.fields(slotSemantics ? new String[] {"resourceId", "quantity", "basis", "slotSemantics"}
+            : new String[] {"resourceId", "quantity", "basis"});
+        double quantity = value.number("quantity", Double.MIN_VALUE, Double.MAX_VALUE);
+        if (slotSemantics)
+        {
+            require(quantity == Math.rint(quantity) && quantity <= Integer.MAX_VALUE,
+                value.at("quantity") + ": resource-flow quantity must be a positive integer");
+        }
+        return new MethodDefinition.ResourceAmount(reference(value, "resourceId", facts), quantity, value.text("basis"));
     }
 
     private String reference(DefinitionJson value, String name, Set<String> facts)

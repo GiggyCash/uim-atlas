@@ -8,6 +8,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.Value;
 
 /** Classifies whether known setup deltas have a trusted resolver; it never invents one. */
@@ -45,7 +46,7 @@ public final class PreparationFeasibility
 
     public Result assess(MethodEfficiency.Result efficiency, FactLookup facts, Instant now)
     {
-        return assess(efficiency, facts, now, Map.of());
+        return assess(efficiency, Optional.empty(), facts, now, Map.of());
     }
 
     /**
@@ -54,6 +55,12 @@ public final class PreparationFeasibility
      */
     public Result assess(MethodEfficiency.Result efficiency, FactLookup facts, Instant now,
         Map<String, Observation<Boolean>> support)
+    {
+        return assess(efficiency, Optional.empty(), facts, now, support);
+    }
+
+    public Result assess(MethodEfficiency.Result efficiency, Optional<ResourceFlow.Analysis> flow,
+        FactLookup facts, Instant now, Map<String, Observation<Boolean>> support)
     {
         MethodEvaluator.Evaluation evaluation = efficiency.getEvaluation();
         if (evaluation.getStatus() == MethodEvaluator.Status.BLOCKED)
@@ -74,6 +81,25 @@ public final class PreparationFeasibility
         efficiency.getWorkingCapacity().stream()
             .filter(check -> check.getResult() == Requirement.Result.UNKNOWN)
             .forEach(check -> unresolved.putIfAbsent(check.getRequirement().getFact(), check.getRequirement()));
+        flow.ifPresent(analysis ->
+        {
+            analysis.getUnresolvedRequirements().forEach(requirement ->
+                unresolved.putIfAbsent(requirement.getFact(), requirement));
+            if (analysis.getStatus() == ResourceFlow.Status.INSUFFICIENT_CAPACITY)
+            {
+                Observation<Double> free = analysis.getChecks().stream()
+                    .filter(check -> check.getFact().equals("inventory.free_slots"))
+                    .map(ResourceFlow.Check::getObservation).findFirst().orElse(Observation.unknown());
+                if (free.isKnown())
+                {
+                    Requirement capacity = new Requirement("inventory.free_slots", Requirement.Comparison.AT_LEAST,
+                        free.getValue() + analysis.getAdditionalFreeSlotsNeeded(),
+                        "Additional ordinary inventory positions required by the declared consume-then-produce batch.",
+                        false, efficiency.getEvaluation().getMethod().getFreeInventorySlots().getMaxAgeSeconds(), false);
+                    addDeficit(deficits, capacity, free);
+                }
+            }
+        });
 
         List<Deficit> orderedDeficits = new ArrayList<>(deficits.values());
         orderedDeficits.sort(Comparator.comparing(deficit -> deficit.getRequirement().getFact()));

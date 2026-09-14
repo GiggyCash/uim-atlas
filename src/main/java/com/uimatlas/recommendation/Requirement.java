@@ -51,8 +51,9 @@ public class Requirement
         }
         double actual = observation.getValue();
         // Capacity counts and boolean container ownership cannot use fractional or impossible values.
-        if ((fact.startsWith("container.") || fact.endsWith(".usable_slots")) && actual != Math.rint(actual)
-            || fact.endsWith(".usable_slots") && actual > 28
+        if ((fact.startsWith("container.") || fact.endsWith(".usable_slots") || fact.endsWith(".occupied_slots"))
+                && actual != Math.rint(actual)
+            || (fact.endsWith(".usable_slots") || fact.endsWith(".occupied_slots")) && actual > 28
             || fact.startsWith("container.") && fact.endsWith(".owned") && actual > 1)
         {
             return Result.UNKNOWN;

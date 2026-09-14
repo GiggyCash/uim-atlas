@@ -17,7 +17,7 @@ This section describes the implemented format. Later sections remain conceptual 
 - `facts`: objects containing a unique stable `id`
 - `methods`: a nonempty array of method definitions
 
-The synthetic catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs use the separate v3 entry point below; changing the data-kind label alone cannot enable them.
+The synthetic catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs use the separate v3/v4 entry point below; changing the data-kind label alone cannot enable them.
 
 Stable IDs use lowercase letters, digits, underscores and dot-separated segments: `[a-z][a-z0-9_]*(\.[a-z0-9_]+)+`. Every requirement fact and produced resource ID must resolve in the catalog's `facts` declarations. These declarations validate references, not observation availability. Synthetic v1 facts contain only `id`. Production `inventory.item.<itemId>.usable_slots` facts additionally require `capacitySemantics: FREE_PLUS_OBSERVED_EXACT_ITEM_SLOTS`; that field is forbidden on every other fact. Unknown fact observations remain unknown. There are no real skill, quest, item or location registries yet.
 
@@ -57,7 +57,7 @@ Validation rejects missing/extra/duplicate JSON fields, nulls, wrong types, unsu
 
 `src/main/resources/uimatlas/methods/construction-v1.json` contains exactly three curated records: novice oak Mahogany Homes contracts, adept teak contracts, and limestone attack stones using an existing flamtaer bag. Catalog revision v1 is distinct from serialization version `3`. Data ships in the JAR; there are no runtime fetches, startup loading, live candidates or UI changes.
 
-`MethodDefinitionLoader.loadProduction(Reader, Set<Integer> canonicalItemIds)` requires `schemaVersion: 3`, `dataKind: PRODUCTION`, and the same root `facts`/`methods` shape as v1. It preserves strict v1 validation, removes method-level `xpRate` for production, and requires these additional method fields. Production v2 is rejected; the bundled catalog migrates atomically. Synthetic v1 keeps its original fields and behavior:
+`MethodDefinitionLoader.loadProduction(Reader, Set<Integer> canonicalItemIds)` accepts supported production schema versions 3 and 4 with `dataKind: PRODUCTION` and the same root `facts`/`methods` shape as v1. It preserves strict v1 validation, removes method-level `xpRate` for production, and requires these additional method fields. Production v2 is rejected. Construction remains schema v3; Herblore v1 uses v4's resource-flow extension below. Synthetic v1 keeps its original fields and behavior:
 
 | Field | Contract |
 | --- | --- |
@@ -144,6 +144,34 @@ The first provider is the carried plank sack. Current carriage remains the ordin
 
 The ordinary `usable_slots` projection uses only the immutable inventory slot map and preserves its source, timestamp and confidence. It never divides, expands or otherwise translates item quantity into positions, and it needs no stackability registry. Empty observed inventory yields 28 ordinary positions; unknown, future or malformed inventory yields UNKNOWN. It does not require equipment. Last-observed values retain their confidence and cannot satisfy current-only production predicates. Production validation requires the explicit capacity-semantics declaration so a catalog cannot silently reuse this derived value for an unrelated item or loop.
 
+### Production Herblore catalog v1 (schema v4)
+
+`src/main/resources/uimatlas/methods/herblore-v1.json` contains six sourced records: cleaning carried grimy guam leaves; making attack, energy and prayer potions from exact carried inputs; converting an exact 4-dose super energy with four amylase crystals; and one narrowly scoped Mammoth-Might order at Mastering Mixology. The first five can use ordinary inventory observation today. Mixology remains UNKNOWN unless Children of the Sun completion, the current MMM order and the hopper's exact mox quantity are all supplied by trustworthy future providers. No order-widget or hopper observation was added.
+
+Schema v4 preserves all production-v3 method fields and changes only `consumes` and `produces` for methods with a bounded resource flow:
+
+- Every `consumes` object adds required `slotSemantics` while retaining its full `Requirement` shape.
+- Every `produces` object adds required `slotSemantics`; its quantity must be a positive integer.
+- Both arrays must be nonempty. Duplicate inputs, duplicate outputs and an item appearing in both groups are rejected for this deliberately bounded first model.
+- `ONE_SLOT_PER_UNIT` quantities must not exceed 28 in one batch. Every inventory flow item must have a declared `inventory.item.<itemId>.occupied_slots` fact. Canonical item-ID validation applies to quantity and position facts.
+- Schema v3 is not reinterpreted. Its existing `consumes` and `produces` objects keep their old shape and `MethodDefinition.resourceFlow` is empty.
+
+`slotSemantics` has exactly three values:
+
+| Value | Trust contract |
+| --- | --- |
+| `ONE_SLOT_PER_UNIT` | Explicit data assertion that each exact item unit occupies one ordinary slot. The live snapshot must confirm `quantity == occupied_slots`; otherwise analysis is UNKNOWN. |
+| `ONE_SHARED_STACK` | Explicit data assertion that all units share one ordinary slot. The snapshot must confirm zero/zero or positive quantity/exactly one occupied slot; otherwise analysis is UNKNOWN. |
+| `NO_INVENTORY_SLOT` | Quantity comes from a supported external scope and neither occupies nor releases an ordinary inventory position. It is rejected for `inventory.item.*` facts. The first use is `container.mixology_hopper.contents.30005.quantity`. |
+
+These declarations are per resource record, not a global stackability registry. The engine never infers a declaration from quantity and never treats a quantity as a slot count without `ONE_SLOT_PER_UNIT` plus matching direct occupancy. Exact occupied positions come from the immutable normalized inventory slot map. A stack of 500 has quantity 500 and occupied positions 1. Missing inventory, invalid positions, stale/future observations, duplicate positions for a declared shared stack, or a quantity/position contradiction produce UNKNOWN with the original observations retained.
+
+The calculator models exactly one declared consume-then-produce batch. After verified inputs are consumed, their released ordinary positions may hold outputs. A `ONE_SLOT_PER_UNIT` output needs one position per produced unit. A `ONE_SHARED_STACK` output uses an already-observed compatible exact output stack when present and otherwise needs one new position. `NO_INVENTORY_SLOT` outputs create no ordinary inventory pressure. The result retains deterministic fact-sorted checks and, when known, input positions released, output positions required, resulting free positions and an exact additional-position shortfall.
+
+This is not a full inventory simulator. It does not infer noted/unnoted equivalence, substitutions, item disposal, acquisition, container transfer, dose combination, decanting, storage, or intermediate route feasibility. Output pressure is a preparation input only. A known slot deficit does not prove Atlas can create that slot. Missing or unsupported input facts remain missing/UNKNOWN through the existing evaluator and preparation layers.
+
+The five ordinary carried-input records deliberately attach no hourly XP range. Wiki per-action XP and recipes are retained in source notes, but an hourly rate depends on batching, unnoting/noting and setup that this snapshot does not establish. The MMM record also omits the published high-level Mixology rates because it covers one verified order rather than the full strategy. Its current-order requirement has a 30-second freshness limit; other Herblore observations use 300 seconds. Efficiency values are coarse editorial normalized inputs for an already-carried single batch, not XP conversions or universal cross-skill claims. External goal/storage/risk/uncertainty factors remain caller supplied.
+
 #### Preparation feasibility and actionability
 
 - `AVAILABLE + READY` -> `ACTIONABLE`.
@@ -168,6 +196,7 @@ IDs are case-sensitive and stable:
 | `inventory.occupied_slots` | Number of occupied slots, independent of stack quantities |
 | `inventory.free_slots` | 28 minus occupied slots, only from an available inventory observation |
 | `inventory.item.<itemId>.usable_slots` | Ordinary free positions plus positions occupied by this exact item; see capacity contract above |
+| `inventory.item.<itemId>.occupied_slots` | Direct count of ordinary positions currently holding that exact item ID; each observed slot entry counts once, independent of quantity |
 | `inventory.item.<itemId>.quantity` | Sum of quantities for that exact item ID in inventory |
 | `equipment.item.<itemId>.quantity` | Sum of quantities for that exact item ID in equipment |
 | `carried.item.<itemId>.quantity` | Inventory plus equipment quantity, requiring both observations |
@@ -178,7 +207,7 @@ IDs are case-sensitive and stable:
 
 `<skill>` is the normalized account skill key lowercased with `Locale.ROOT`, for example `CONSTRUCTION` becomes `construction`. No per-skill mappings or RuneLite enums are introduced. Missing skills are unknown; there is no default level or XP. The observer already excludes the aggregate skill. `<itemId>` is a canonical nonnegative decimal Java integer (`0` through `2147483647`, no sign or leading zeroes except `0` itself), matching the normalized item model. IDs work generically without asserting that an ID exists in the game. Exact IDs remain distinct, including noted/unnoted and other variants; no equivalence or nested-container content is inferred. Malformed or unsupported IDs return unknown.
 
-An observed empty inventory gives 0 occupied and 28 free slots. Unknown inventory gives unknown slot facts and item quantities. A stack consumes one slot regardless of quantity; duplicate item stacks in different slots contribute all their quantities. Summation uses `long` before conversion to the evaluator's numeric `Double` observations, avoiding 32-bit quantity overflow. Missing items in a known inventory/equipment observation are known zero with that container's metadata. A missing item in an unknown container remains unknown. Inventory slots outside the normalized 0–27 range make both slot facts unknown; item facts still describe the observed contents.
+An observed empty inventory gives 0 occupied and 28 free slots. Unknown inventory gives unknown slot facts and item quantities. A stack consumes one slot regardless of quantity; duplicate item stacks in different slots contribute all their quantities. Exact-item occupied-slot facts count those positions directly and never inspect quantity. Summation uses `long` before conversion to the evaluator's numeric `Double` observations, avoiding 32-bit quantity overflow. Missing items in a known inventory/equipment observation are known zero with that container's metadata. A missing item in an unknown container remains unknown. Inventory slots outside the normalized 0–27 range make free, total-occupied and exact-item occupied-slot facts unknown; item quantity facts still describe the observed contents.
 
 Direct skill, container quantity and slot facts preserve the input source string, confidence and timestamp unchanged. Negative skill values and observations dated after `asOf` yield explicit unknowns. This cutoff also prevents a future-dated carried constituent being hidden by the older combined timestamp. Unknown observations have no invented value, source or timestamp, following the existing `Observation` model.
 
@@ -239,7 +268,7 @@ Every consumed observation uses the existing `Requirement.evaluate` freshness/co
 
 Requirements and quantity accumulation are ordered by fact ID. No clock reads, mutable global state, map-order dependence or random values are used. The v1 JSON shape is unchanged. The component expects validated definitions and checks the slot/quantity predicate shapes needed by its formula.
 
-Limits: no equipped-slot compatibility, stackability, extra acquisition-slot prediction, substitute items, usefulness/protection inference, retrieval, travel, reacquisition, cleanup or disposal planning. A missing quantity expresses generic obtaining/rearranging burden only. `produces` quantities cannot safely become inventory slots without additional metadata, so they are not used. Setup scoring introduces no goal, XP, storage or risk derivation. Efficiency profile derivation is separate and does not change this formula. Synthetic tests cover the full account-state/evaluation/derivation/scoring/ranking chain: the slightly less efficient method wins with its setup carried, and changing only the inventory reverses the winner.
+Limits: no equipped-slot compatibility, extra acquisition-slot prediction, substitute items, usefulness/protection inference, retrieval, travel, reacquisition, cleanup or disposal planning. A missing quantity expresses generic obtaining/rearranging burden only. Setup scoring itself does not use `produces`; schema-v4 `ResourceFlow` performs the separate, explicitly declared slot calculation retained by `RecommendationDecision`. Setup scoring introduces no goal, XP, storage or risk derivation. Efficiency profile derivation is separate and does not change this formula. Synthetic tests cover the full account-state/evaluation/derivation/scoring/ranking chain: the slightly less efficient method wins with its setup carried, and changing only the inventory reverses the winner.
 
 ## General rules
 

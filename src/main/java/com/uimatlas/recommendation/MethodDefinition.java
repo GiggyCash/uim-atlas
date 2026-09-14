@@ -51,6 +51,7 @@ public class MethodDefinition
     List<Source> sources;
     List<Requirement> workingCapacity;
     List<EfficiencyProfile> efficiencyProfiles;
+    Optional<ResourceFlow> resourceFlow;
 
     public MethodDefinition(String id, String displayName, String category, String activity, Start start,
         List<Requirement> hardRequirements, List<Requirement> preparation, Requirement freeInventorySlots,
@@ -80,6 +81,19 @@ public class MethodDefinition
         DataKind dataKind, List<Requirement> optionalSetup, List<Source> sources,
         List<Requirement> workingCapacity, List<EfficiencyProfile> efficiencyProfiles)
     {
+        this(id, displayName, category, activity, start, hardRequirements, preparation, freeInventorySlots,
+            setupItems, consumes, produces, stopConditions, style, xpRate, costs, danger, reason,
+            dataKind, optionalSetup, sources, workingCapacity, efficiencyProfiles, Optional.empty());
+    }
+
+    public MethodDefinition(String id, String displayName, String category, String activity, Start start,
+        List<Requirement> hardRequirements, List<Requirement> preparation, Requirement freeInventorySlots,
+        List<Requirement> setupItems, List<Requirement> consumes, List<ResourceAmount> produces,
+        List<Requirement> stopConditions, Style style, XpRate xpRate, Costs costs, Danger danger, String reason,
+        DataKind dataKind, List<Requirement> optionalSetup, List<Source> sources,
+        List<Requirement> workingCapacity, List<EfficiencyProfile> efficiencyProfiles,
+        Optional<ResourceFlow> resourceFlow)
+    {
         this.id = id;
         this.displayName = displayName;
         this.category = category;
@@ -102,6 +116,7 @@ public class MethodDefinition
         this.sources = List.copyOf(sources);
         this.workingCapacity = List.copyOf(workingCapacity);
         this.efficiencyProfiles = List.copyOf(efficiencyProfiles);
+        this.resourceFlow = resourceFlow;
     }
 
     @Value

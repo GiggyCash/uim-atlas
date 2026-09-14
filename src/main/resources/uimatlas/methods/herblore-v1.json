@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 4,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    { "id": "capability.activity.mixology.order_mmm" },
+    { "id": "capability.quest.children_of_the_sun.complete" },
+    { "id": "inventory.free_slots" },
+    { "id": "inventory.item.91.occupied_slots" },
+    { "id": "inventory.item.91.quantity" },
+    { "id": "inventory.item.97.occupied_slots" },
+    { "id": "inventory.item.97.quantity" },
+    { "id": "inventory.item.99.occupied_slots" },
+    { "id": "inventory.item.99.quantity" },
+    { "id": "inventory.item.121.occupied_slots" },
+    { "id": "inventory.item.121.quantity" },
+    { "id": "inventory.item.139.occupied_slots" },
+    { "id": "inventory.item.139.quantity" },
+    { "id": "inventory.item.199.occupied_slots" },
+    { "id": "inventory.item.199.quantity" },
+    { "id": "inventory.item.221.occupied_slots" },
+    { "id": "inventory.item.221.quantity" },
+    { "id": "inventory.item.231.occupied_slots" },
+    { "id": "inventory.item.231.quantity" },
+    { "id": "inventory.item.249.occupied_slots" },
+    { "id": "inventory.item.249.quantity" },
+    { "id": "inventory.item.1975.occupied_slots" },
+    { "id": "inventory.item.1975.quantity" },
+    { "id": "inventory.item.3010.occupied_slots" },
+    { "id": "inventory.item.3010.quantity" },
+    { "id": "inventory.item.3016.occupied_slots" },
+    { "id": "inventory.item.3016.quantity" },
+    { "id": "inventory.item.12625.occupied_slots" },
+    { "id": "inventory.item.12625.quantity" },
+    { "id": "inventory.item.12640.occupied_slots" },
+    { "id": "inventory.item.12640.quantity" },
+    { "id": "container.mixology_hopper.contents.30005.quantity" },
+    { "id": "inventory.item.30021.occupied_slots" },
+    { "id": "inventory.item.30021.quantity" },
+    { "id": "skill.herblore.level" },
+    { "id": "skill.herblore.xp" }
+  ],
+  "methods": [
+    {
+      "id": "method.herblore.clean_guam",
+      "displayName": "Clean carried grimy guam leaves",
+      "category": "PROCESSING",
+      "activity": "HERBLORE",
+      "start": {
+        "location": "Current location",
+        "contact": "Inventory",
+        "instruction": "Clean the currently carried grimy guam leaves. Noting, unnoting and acquisition are outside this record."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 3,
+          "description": "Unboosted level required to clean guam; reaching level 3 also follows the mandatory Druidic Ritual unlock.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots", "comparison": "AT_LEAST", "target": 0,
+        "description": "Cleaning replaces one non-stackable grimy herb with one non-stackable clean herb, so the declared batch needs no extra ordinary slot.",
+        "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [
+        {
+          "fact": "inventory.item.199.quantity", "comparison": "AT_LEAST", "target": 1,
+          "description": "One currently carried grimy guam leaf for one cleaning action.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "inventory.item.249.quantity", "quantity": 1,
+          "basis": "One clean guam leaf per carried grimy guam leaf cleaned.",
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "inventory.item.199.quantity", "comparison": "AT_MOST", "target": 0,
+          "description": "Stop when no carried grimy guam remains.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+        }
+      ],
+      "style": { "attention": 0.9, "playStyle": "Direct carried-herb processing", "tickManipulation": false },
+      "costs": {
+        "storageUnlockValue": 0, "setupMinutes": 0, "transitionMinutes": 0, "inventoryDisruption": 0,
+        "assumptions": "Uses only the currently carried herb. No acquisition, noting, disposal or storage value is inferred."
+      },
+      "danger": "LOW",
+      "reason": "Processes a carried herb immediately while preserving occupied-slot count; the low per-action XP is retained as source context, not converted into a claimed hourly rate.",
+      "optionalSetup": [],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Herblore", "reviewedAt": "2026-09-14",
+          "notes": "Reviewed current UIM guidance for cleaning carried herbs and the inventory pressure of Herblore."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Herb", "reviewedAt": "2026-09-14",
+          "notes": "Reviewed level 3, 2.5 experience, and the grimy-to-clean guam transformation. Both exact forms are non-stackable."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java", "reviewedAt": "2026-09-14",
+          "notes": "Pinned RuneLite game-value constants reviewed: UNIDENTIFIED_GUAM 199 and GUAM_LEAF 249."
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.carried_single_batch", "priority": 10,
+          "requirements": [
+            {
+              "fact": "inventory.item.199.quantity", "comparison": "AT_LEAST", "target": 1,
+              "description": "At least one current carried herb supports the conservative single-action profile.",
+              "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.1,
+          "notes": "Coarse editorial efficiency for direct cleaning of already-carried guam. No hourly rate is claimed."
+        }
+      ]
+    },
+    {
+      "id": "method.herblore.attack_potion",
+      "displayName": "Make attack potions from carried ingredients",
+      "category": "TRAINING",
+      "activity": "HERBLORE",
+      "start": { "location": "Current location", "contact": "Inventory", "instruction": "Combine carried guam potion (unf) with carried eye of newt." },
+      "hardRequirements": [
+        {
+          "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 3,
+          "description": "Unboosted level required to make an attack potion; level 3 follows the mandatory Druidic Ritual unlock.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots", "comparison": "AT_LEAST", "target": 0,
+        "description": "The output can reuse one of the two consumed non-stackable input positions.",
+        "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+      },
+      "setupItems": [],
+      "consumes": [
+        {
+          "fact": "inventory.item.91.quantity", "comparison": "AT_LEAST", "target": 1,
+          "description": "One carried guam potion (unf) per declared action.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        },
+        {
+          "fact": "inventory.item.221.quantity", "comparison": "AT_LEAST", "target": 1,
+          "description": "One carried eye of newt per declared action.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false,
+          "slotSemantics": "ONE_SLOT_PER_UNIT"
+        }
+      ],
+      "produces": [
+        { "resourceId": "inventory.item.121.quantity", "quantity": 1, "basis": "One 3-dose attack potion per action.", "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "stopConditions": [
+        {
+          "fact": "inventory.item.91.quantity", "comparison": "AT_MOST", "target": 0,
+          "description": "Pause when the carried unfinished guam potions run out and re-evaluate remaining inputs.",
+          "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false
+        }
+      ],
+      "style": { "attention": 0.7, "playStyle": "Low-level carried-supply potion making", "tickManipulation": false },
+      "costs": {
+        "storageUnlockValue": 0, "setupMinutes": 0, "transitionMinutes": 0, "inventoryDisruption": 0.1,
+        "assumptions": "Only the carried one-action batch is assessed. Buying eyes, making unfinished potions, noting outputs and disposal are outside scope."
+      },
+      "danger": "LOW",
+      "reason": "A low-level UIM potion option when both exact carried ingredients are already available.",
+      "optionalSetup": [],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Herblore", "reviewedAt": "2026-09-14",
+          "notes": "Reviewed the UIM level 3 attack-potion recommendation and eye-of-newt shop context; acquisition is not modeled."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Attack_potion", "reviewedAt": "2026-09-14",
+          "notes": "Reviewed the one guam potion (unf) plus one eye of newt recipe, 3-dose output, level 3 and 25 experience. All three exact items are non-stackable."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java", "reviewedAt": "2026-09-14",
+          "notes": "Pinned constants reviewed: GUAMVIAL 91, EYE_OF_NEWT 221 and _3DOSE1ATTACK 121."
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.carried_single_batch", "priority": 10,
+          "requirements": [
+            { "fact": "inventory.item.91.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried unfinished potion.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+            { "fact": "inventory.item.221.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried secondary.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+          ],
+          "efficiency": 0.25,
+          "notes": "Conservative one-action carried-input profile. It carries no hourly XP estimate."
+        }
+      ]
+    },
+    {
+      "id": "method.herblore.energy_potion",
+      "displayName": "Make energy potions from carried ingredients",
+      "category": "TRAINING",
+      "activity": "HERBLORE",
+      "start": { "location": "Current location", "contact": "Inventory", "instruction": "Combine carried harralander potion (unf) with carried chocolate dust." },
+      "hardRequirements": [
+        { "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 26, "description": "Unboosted level required to make energy potions.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+      ],
+      "preparation": [],
+      "freeInventorySlots": { "fact": "inventory.free_slots", "comparison": "AT_LEAST", "target": 0, "description": "The output can reuse one of the two consumed non-stackable input positions.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+      "setupItems": [],
+      "consumes": [
+        { "fact": "inventory.item.97.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried harralander potion (unf) per action.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false, "slotSemantics": "ONE_SLOT_PER_UNIT" },
+        { "fact": "inventory.item.1975.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried chocolate dust per action.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false, "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "produces": [
+        { "resourceId": "inventory.item.3010.quantity", "quantity": 1, "basis": "One 3-dose energy potion per action.", "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "stopConditions": [
+        { "fact": "inventory.item.97.quantity", "comparison": "AT_MOST", "target": 0, "description": "Pause when carried unfinished harralander potions run out.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+      ],
+      "style": { "attention": 0.7, "playStyle": "Carried-supply potion making", "tickManipulation": false },
+      "costs": { "storageUnlockValue": 0, "setupMinutes": 0, "transitionMinutes": 0, "inventoryDisruption": 0.1, "assumptions": "Only carried ingredients are assessed. Chocolate collection, unfinished-potion services and output noting are outside scope." },
+      "danger": "LOW",
+      "reason": "The UIM guide favors energy potions at this level because the secondary is comparatively easy to collect, but this record recommends only an already-carried batch.",
+      "optionalSetup": [],
+      "sources": [
+        { "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Herblore", "reviewedAt": "2026-09-14", "notes": "Reviewed the level 26 energy-potion guidance and UIM secondary-collection context." },
+        { "url": "https://oldschool.runescape.wiki/w/Energy_potion", "reviewedAt": "2026-09-14", "notes": "Reviewed the one harralander potion (unf) plus one chocolate dust recipe, 3-dose output and 67.5 experience. Exact inputs and output are non-stackable." },
+        { "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java", "reviewedAt": "2026-09-14", "notes": "Pinned constants reviewed: HARRALANDERVIAL 97, CHOCOLATE_DUST 1975 and _3DOSE1ENERGY 3010." }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        { "id": "profile.carried_single_batch", "priority": 10, "requirements": [
+          { "fact": "inventory.item.97.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried unfinished potion.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+          { "fact": "inventory.item.1975.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried secondary.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+        ], "efficiency": 0.3, "notes": "Conservative one-action carried-input profile. It carries no hourly XP estimate." }
+      ]
+    },
+    {
+      "id": "method.herblore.prayer_potion",
+      "displayName": "Make prayer potions from carried ingredients",
+      "category": "TRAINING",
+      "activity": "HERBLORE",
+      "start": { "location": "Current location", "contact": "Inventory", "instruction": "Combine carried ranarr potion (unf) with carried snape grass." },
+      "hardRequirements": [
+        { "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 38, "description": "Unboosted level required to make prayer potions.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+      ],
+      "preparation": [],
+      "freeInventorySlots": { "fact": "inventory.free_slots", "comparison": "AT_LEAST", "target": 0, "description": "The output can reuse one of the two consumed non-stackable input positions.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+      "setupItems": [],
+      "consumes": [
+        { "fact": "inventory.item.99.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried ranarr potion (unf) per action.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false, "slotSemantics": "ONE_SLOT_PER_UNIT" },
+        { "fact": "inventory.item.231.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried snape grass per action.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false, "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "produces": [
+        { "resourceId": "inventory.item.139.quantity", "quantity": 1, "basis": "One 3-dose prayer potion per action.", "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "stopConditions": [
+        { "fact": "inventory.item.99.quantity", "comparison": "AT_MOST", "target": 0, "description": "Pause when carried unfinished ranarr potions run out.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+      ],
+      "style": { "attention": 0.7, "playStyle": "Useful-supply potion making", "tickManipulation": false },
+      "costs": { "storageUnlockValue": 0, "setupMinutes": 0, "transitionMinutes": 0, "inventoryDisruption": 0.1, "assumptions": "Only carried ingredients are assessed. Farming, collecting, unnoting and noting are not preparation providers." },
+      "danger": "LOW",
+      "reason": "Converts already-carried ranarr inputs into useful prayer potions without assuming future snape-grass acquisition.",
+      "optionalSetup": [],
+      "sources": [
+        { "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Herblore", "reviewedAt": "2026-09-14", "notes": "Reviewed the level 38 UIM prayer-potion recommendation, usefulness and secondary sourcing context." },
+        { "url": "https://oldschool.runescape.wiki/w/Prayer_potion", "reviewedAt": "2026-09-14", "notes": "Reviewed the one ranarr potion (unf) plus one snape grass recipe, 3-dose output and 87.5 experience. Exact inputs and output are non-stackable." },
+        { "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java", "reviewedAt": "2026-09-14", "notes": "Pinned constants reviewed: RANARRVIAL 99, SNAPE_GRASS 231 and _3DOSEPRAYERRESTORE 139." }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        { "id": "profile.carried_single_batch", "priority": 10, "requirements": [
+          { "fact": "inventory.item.99.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried unfinished potion.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+          { "fact": "inventory.item.231.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried secondary.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+        ], "efficiency": 0.4, "notes": "Conservative one-action carried-input profile. It carries no hourly XP estimate." }
+      ]
+    },
+    {
+      "id": "method.herblore.stamina_potion",
+      "displayName": "Convert carried 4-dose super energies to staminas",
+      "category": "PROCESSING",
+      "activity": "HERBLORE",
+      "start": { "location": "Current location", "contact": "Inventory", "instruction": "Use four carried amylase crystals on one carried 4-dose super energy potion." },
+      "hardRequirements": [
+        { "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 77, "description": "Unboosted level required to make stamina potions.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+      ],
+      "preparation": [],
+      "freeInventorySlots": { "fact": "inventory.free_slots", "comparison": "AT_LEAST", "target": 0, "description": "The stamina output reuses the consumed super-energy position; amylase remains one shared stack unless exhausted.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+      "setupItems": [],
+      "consumes": [
+        { "fact": "inventory.item.3016.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One carried 4-dose super energy potion.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false, "slotSemantics": "ONE_SLOT_PER_UNIT" },
+        { "fact": "inventory.item.12640.quantity", "comparison": "AT_LEAST", "target": 4, "description": "Four carried amylase crystals for the four doses.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false, "slotSemantics": "ONE_SHARED_STACK" }
+      ],
+      "produces": [
+        { "resourceId": "inventory.item.12625.quantity", "quantity": 1, "basis": "One 4-dose stamina potion per four-dose conversion.", "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "stopConditions": [
+        { "fact": "inventory.item.12640.quantity", "comparison": "AT_MOST", "target": 3, "description": "Pause when fewer than four carried amylase crystals remain.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+      ],
+      "style": { "attention": 0.6, "playStyle": "Direct carried-supply conversion", "tickManipulation": false },
+      "costs": { "storageUnlockValue": 0, "setupMinutes": 0, "transitionMinutes": 0, "inventoryDisruption": 0.1, "assumptions": "No decanting, agility acquisition, noting or chained super-energy production is assumed. Exact carried 4-dose inputs only." },
+      "danger": "LOW",
+      "reason": "Exercises a verified stack quantity without treating four crystals as four slots; the carried super-energy slot becomes the output slot.",
+      "optionalSetup": [],
+      "sources": [
+        { "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Herblore", "reviewedAt": "2026-09-14", "notes": "Reviewed the level 77 UIM stamina guidance and the explicit statement that amylase crystals stack." },
+        { "url": "https://oldschool.runescape.wiki/w/Stamina_potion", "reviewedAt": "2026-09-14", "notes": "Reviewed one crystal per dose, four crystals for a 4-dose conversion, level 77 and 102 total experience." },
+        { "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java", "reviewedAt": "2026-09-14", "notes": "Pinned constants reviewed: _4DOSE2ENERGY 3016, AMYLASE 12640 and _4DOSESTAMINA 12625." }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        { "id": "profile.carried_four_dose_conversion", "priority": 10, "requirements": [
+          { "fact": "inventory.item.3016.quantity", "comparison": "AT_LEAST", "target": 1, "description": "One exact carried 4-dose super energy potion.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+          { "fact": "inventory.item.12640.quantity", "comparison": "AT_LEAST", "target": 4, "description": "Four current amylase crystals in their one shared stack.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false }
+        ], "efficiency": 0.35, "notes": "Conservative direct conversion profile. It excludes decanting and carries no hourly XP estimate." }
+      ]
+    },
+    {
+      "id": "method.herblore.mixology.mammoth_might_order",
+      "displayName": "Mastering Mixology — Mammoth-Might order",
+      "category": "MINIGAME",
+      "activity": "HERBLORE",
+      "start": { "location": "Alchemical Society, Aldarin", "contact": "Mixing vessel", "instruction": "Only when Mammoth-Might is a currently verified order, draw three measures of mox paste and process the potion." },
+      "hardRequirements": [
+        { "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 60, "description": "Unboosted level required to participate in Mastering Mixology.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+        { "fact": "capability.quest.children_of_the_sun.complete", "comparison": "AT_LEAST", "target": 1, "description": "Children of the Sun completion is required to participate; no live provider exists yet.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
+        { "fact": "capability.activity.mixology.order_mmm", "comparison": "AT_LEAST", "target": 1, "description": "Mammoth-Might must be a currently verified requested order; the order HUD is not observed yet.", "allowLastObserved": false, "maxAgeSeconds": 30, "safetyRelevant": false }
+      ],
+      "preparation": [],
+      "freeInventorySlots": { "fact": "inventory.free_slots", "comparison": "AT_LEAST", "target": 0, "description": "Dynamic output pressure is derived from the exact current paste stack and output positions rather than a fixed free-slot gate.", "allowLastObserved": false, "maxAgeSeconds": 30, "safetyRelevant": false },
+      "setupItems": [],
+      "consumes": [
+        { "fact": "container.mixology_hopper.contents.30005.quantity", "comparison": "AT_LEAST", "target": 30, "description": "Three ten-paste mox measures available in the Mixology hopper for one Mammoth-Might potion.", "allowLastObserved": false, "maxAgeSeconds": 30, "safetyRelevant": false, "slotSemantics": "NO_INVENTORY_SLOT" }
+      ],
+      "produces": [
+        { "resourceId": "inventory.item.30021.quantity", "quantity": 1, "basis": "One processed Mammoth-Might potion for the verified order.", "slotSemantics": "ONE_SLOT_PER_UNIT" }
+      ],
+      "stopConditions": [
+        { "fact": "capability.activity.mixology.order_mmm", "comparison": "AT_MOST", "target": 0, "description": "Stop when Mammoth-Might is no longer a current order and refresh order state.", "allowLastObserved": false, "maxAgeSeconds": 30, "safetyRelevant": false }
+      ],
+      "style": { "attention": 0.8, "playStyle": "One verified order at a time", "tickManipulation": false },
+      "costs": { "storageUnlockValue": 0, "setupMinutes": 0, "transitionMinutes": 0, "inventoryDisruption": 0.2, "assumptions": "Paste creation, hopper filling, machine timing, multi-order batching, rewards and digweed are outside this bounded resource flow." },
+      "danger": "LOW",
+      "reason": "Represents the low-space one-order style only when the changing order and quest access are verified; it exposes output-slot pressure from a retained paste stack.",
+      "optionalSetup": [],
+      "sources": [
+        { "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Herblore", "reviewedAt": "2026-09-14", "notes": "Reviewed current UIM guidance that Mixology is well suited to UIM restrictions, uses few inventory spaces and stores paste in the hopper." },
+        { "url": "https://oldschool.runescape.wiki/w/Mastering_Mixology", "reviewedAt": "2026-09-14", "notes": "Reviewed level 60, Children of the Sun, MMM composition, ten-paste lever measures and current-order reward boundary." },
+        { "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java", "reviewedAt": "2026-09-14", "notes": "Pinned constants reviewed: MM_MOX_PASTE 30005 and MM_POTION_MMM_FINISHED 30021."
+        }
+      ],
+      "workingCapacity": [],
+      "efficiencyProfiles": [
+        { "id": "profile.verified_single_order", "priority": 10, "requirements": [
+          { "fact": "capability.activity.mixology.order_mmm", "comparison": "AT_LEAST", "target": 1, "description": "The requested order is currently verified.", "allowLastObserved": false, "maxAgeSeconds": 30, "safetyRelevant": false },
+          { "fact": "container.mixology_hopper.contents.30005.quantity", "comparison": "AT_LEAST", "target": 30, "description": "Enough currently verified hopper paste for the order.", "allowLastObserved": false, "maxAgeSeconds": 30, "safetyRelevant": false }
+        ], "efficiency": 0.5, "notes": "Editorial single-order efficiency. No hourly rate is attached because full setup, changing orders and strategy are not verified."
+        }
+      ]
+    }
+  ]
+}

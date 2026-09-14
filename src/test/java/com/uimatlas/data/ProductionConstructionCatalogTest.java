@@ -306,13 +306,15 @@ public class ProductionConstructionCatalogTest
             assertFalse(entries.stream().anyMatch(name -> name.toLowerCase(java.util.Locale.ROOT).contains("synthetic")));
             Path base = Path.of(System.getProperty("testClassesDirectory"));
             classes.filter(Files::isRegularFile).forEach(path -> assertFalse(entries.contains(base.relativize(path).toString().replace('\\', '/'))));
-            List<String> catalogs = entries.stream().filter(name -> name.startsWith("uimatlas/methods/") && !name.endsWith("/")).collect(Collectors.toList());
-            assertEquals(List.of(CATALOG.substring(1)), catalogs);
+            List<String> catalogs = entries.stream().filter(name -> name.startsWith("uimatlas/methods/") && !name.endsWith("/"))
+                .sorted().collect(Collectors.toList());
+            assertEquals(List.of(CATALOG.substring(1), ProductionHerbloreCatalogTest.CATALOG.substring(1)), catalogs);
             for (String path : catalogs)
             {
                 try (InputStreamReader reader = new InputStreamReader(jar.getInputStream(jar.getJarEntry(path)), StandardCharsets.UTF_8))
                 {
-                    assertEquals(3, new MethodDefinitionLoader().loadProduction(reader, canonicalItems()).size());
+                    int expected = path.equals(CATALOG.substring(1)) ? 3 : 6;
+                    assertEquals(expected, new MethodDefinitionLoader().loadProduction(reader, canonicalItems()).size());
                 }
             }
         }

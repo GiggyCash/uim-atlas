@@ -51,6 +51,7 @@ public final class RecommendationDecision
         MethodEvaluator.Evaluation evaluation;
         SetupScoringInputs.Result setup;
         MethodEfficiency.Result efficiency;
+        Optional<ResourceFlow.Analysis> resourceFlow;
         Optional<MethodScorer.Score> score;
         PreparationFeasibility.Result preparation;
         MethodActionability.Result actionability;
@@ -100,14 +101,16 @@ public final class RecommendationDecision
             }
             MethodEfficiency.Result efficiency = new MethodEfficiency().derive(candidate.getMethod(), facts, now);
             SetupScoringInputs.Result setup = new SetupScoringInputs().derive(candidate.getMethod(), facts, now);
-            PreparationFeasibility.Result prep = preparation.assess(efficiency, facts, now,
+            Optional<ResourceFlow.Analysis> flow = candidate.getMethod().getResourceFlow()
+                .map(resource -> resource.analyze(facts, now));
+            PreparationFeasibility.Result prep = preparation.assess(efficiency, flow, facts, now,
                 candidate.getPreparationSupport());
             MethodActionability.Result action = actionability.decide(efficiency.getEvaluation(), prep);
             Optional<Map<MethodScorer.Factor, Double>> inputs = efficiency
                 .withExplicitFactors(candidate.getExplicitFactors()).flatMap(setup::withExplicitFactors);
             inputs.ifPresent(value -> scorable.add(new MethodRanker.Candidate(candidate.getMethod(), value)));
             results.put(id, new CandidateResult(candidate.getMethod(), efficiency.getEvaluation(), setup,
-                efficiency, Optional.empty(), prep, action));
+                efficiency, flow, Optional.empty(), prep, action));
         }
 
         MethodRanker.RankingResult ranking = new MethodRanker().rank(scorable, facts, now);
@@ -116,7 +119,8 @@ public final class RecommendationDecision
             String id = ranked.getCandidate().getMethod().getId();
             CandidateResult prior = results.get(id);
             results.put(id, new CandidateResult(prior.getMethod(), ranked.getEvaluation(), prior.getSetup(),
-                prior.getEfficiency(), ranked.getScore(), prior.getPreparation(), prior.getActionability()));
+                prior.getEfficiency(), prior.getResourceFlow(), ranked.getScore(), prior.getPreparation(),
+                prior.getActionability()));
         });
         List<CandidateResult> all = new ArrayList<>(results.values());
         all.sort(Comparator.comparingDouble((CandidateResult result) ->

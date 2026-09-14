@@ -14,7 +14,7 @@ public final class AccountStateFacts implements FactLookup
 {
     private static final int INVENTORY_CAPACITY = 28;
     private static final Pattern ITEM_FACT = Pattern.compile(
-        "(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.(quantity|usable_slots)");
+        "(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.(quantity|usable_slots|occupied_slots)");
     private static final Pattern CAPABILITY_FACT = Pattern.compile(
         "capability\\.[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+");
     private static final Pattern CONTAINER_ID = Pattern.compile("[a-z][a-z0-9_]*");
@@ -76,8 +76,7 @@ public final class AccountStateFacts implements FactLookup
             }
         });
         // A malformed normalized inventory cannot establish how much usable space remains.
-        if (inventory.isKnown() && inventory.getValue().getSlots().keySet().stream()
-            .allMatch(slot -> slot < INVENTORY_CAPACITY))
+        if (validInventorySlots())
         {
             int occupied = inventory.getValue().occupiedSlots();
             projected.put("inventory.occupied_slots", derived(occupied, inventory));
@@ -120,6 +119,16 @@ public final class AccountStateFacts implements FactLookup
                 .filter(item -> item.getItemId() == itemId).count();
             return derived(free.getValue() + occupiedByItem, inventory);
         }
+        if (match.group(3).equals("occupied_slots"))
+        {
+            if (!scope.equals("inventory") || !validInventorySlots())
+            {
+                return Observation.unknown();
+            }
+            long occupiedByItem = inventory.getValue().getSlots().values().stream()
+                .filter(item -> item.getItemId() == itemId).count();
+            return derived(occupiedByItem, inventory);
+        }
         if (scope.equals("carried"))
         {
             return carried(itemId);
@@ -142,6 +151,12 @@ public final class AccountStateFacts implements FactLookup
         Observation<Double> result = Observation.verified(inInventory.getValue() + equipped.getValue(), source, oldest);
         return inInventory.getConfidence() == Observation.Confidence.VERIFIED_NOW
             && equipped.getConfidence() == Observation.Confidence.VERIFIED_NOW ? result : result.lastObserved();
+    }
+
+    private boolean validInventorySlots()
+    {
+        return inventory.isKnown() && inventory.getValue().getSlots().keySet().stream()
+            .allMatch(slot -> slot < INVENTORY_CAPACITY);
     }
 
     private static Observation<Double> quantity(Observation<ItemContainerState> container, int itemId)

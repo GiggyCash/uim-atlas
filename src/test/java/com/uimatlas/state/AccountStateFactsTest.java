@@ -259,6 +259,9 @@ public class AccountStateFactsTest
             1, new ItemStack(1234, 1), 2, new ItemStack(5678, 1)), "capacity inventory", NOW.minusSeconds(60));
         AccountState state = AccountState.builder().inventory(inventory).build();
         FactLookup facts = new AccountStateFacts(state, NOW);
+        assertEquals(derived(2, inventory), facts.get("inventory.item.1234.occupied_slots"));
+        assertEquals(derived(1, inventory), facts.get("inventory.item.5678.occupied_slots"));
+        assertEquals(derived(0, inventory), facts.get("inventory.item.9999.occupied_slots"));
         assertEquals(derived(27, inventory), facts.get("inventory.item.1234.usable_slots"));
         assertEquals(derived(26, inventory), facts.get("inventory.item.5678.usable_slots"));
         assertEquals(derived(25, inventory), facts.get("inventory.item.9999.usable_slots"));
@@ -270,13 +273,17 @@ public class AccountStateFactsTest
         assertEquals(Requirement.Result.UNKNOWN, need.evaluate(historical.get(need.getFact()), NOW));
         for (String id : List.of("container.example.owned", "container.example.free_capacity",
             "container.example.contents.1234.quantity", "equipment.item.1234.usable_slots",
-            "carried.item.1234.usable_slots", "inventory.item.01234.usable_slots"))
+            "carried.item.1234.usable_slots", "inventory.item.01234.usable_slots",
+            "equipment.item.1234.occupied_slots", "carried.item.1234.occupied_slots",
+            "inventory.item.01234.occupied_slots"))
         {
             assertUnknown(facts.get(id));
         }
         assertUnknown(new AccountStateFacts(AccountState.empty(), NOW).get(need.getFact()));
         assertUnknown(new AccountStateFacts(state.toBuilder().inventory(container(Map.of(28, new ItemStack(1234, 1)),
             "invalid capacity", NOW)).build(), NOW).get(need.getFact()));
+        assertUnknown(new AccountStateFacts(state.toBuilder().inventory(container(Map.of(28, new ItemStack(1234, 1)),
+            "invalid capacity", NOW)).build(), NOW).get("inventory.item.1234.occupied_slots"));
         assertUnknown(new AccountStateFacts(state.toBuilder().inventory(container(Map.of(),
             "future capacity", NOW.plusSeconds(1))).build(), NOW).get(need.getFact()));
         assertEquals(28, new AccountStateFacts(state.toBuilder().inventory(container(Map.of(), "empty capacity", NOW))
