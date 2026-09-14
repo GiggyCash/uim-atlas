@@ -14,7 +14,7 @@ public final class AccountStateFacts implements FactLookup
 {
     private static final int INVENTORY_CAPACITY = 28;
     private static final Pattern ITEM_FACT = Pattern.compile(
-        "(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.quantity");
+        "(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.(quantity|usable_slots)");
 
     private final Map<String, Observation<Double>> facts;
     private final Observation<ItemContainerState> inventory;
@@ -71,6 +71,17 @@ public final class AccountStateFacts implements FactLookup
             return Observation.unknown();
         }
         String scope = match.group(1);
+        if (match.group(3).equals("usable_slots"))
+        {
+            Observation<Double> free = facts.get("inventory.free_slots");
+            if (!scope.equals("inventory") || free == null)
+            {
+                return Observation.unknown();
+            }
+            long occupiedByItem = inventory.getValue().getSlots().values().stream()
+                .filter(item -> item.getItemId() == itemId).count();
+            return derived(free.getValue() + occupiedByItem, inventory);
+        }
         if (scope.equals("carried"))
         {
             return carried(itemId);

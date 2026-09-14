@@ -11,10 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import static com.uimatlas.data.DefinitionJson.require;
 
-/** Separate, strict entry points for bundled production v2 and synthetic v1. The caller owns the reader. */
+/** Separate, strict entry points for bundled production v3 and synthetic v1. The caller owns the reader. */
 public final class MethodDefinitionLoader
 {
     public List<MethodDefinition> loadSynthetic(Reader input)
@@ -33,7 +34,7 @@ public final class MethodDefinitionLoader
         try
         {
             DefinitionJson root = DefinitionJson.read(input).fields("schemaVersion", "dataKind", "facts", "methods");
-            require(root.integer("schemaVersion", Integer.MAX_VALUE) == (production ? 2 : 1), "$.schemaVersion: unsupported version");
+            require(root.integer("schemaVersion", Integer.MAX_VALUE) == (production ? 3 : 1), "$.schemaVersion: unsupported version");
             String kind = production ? "PRODUCTION" : "SYNTHETIC_TEST_ONLY";
             require(root.text("dataKind").equals(kind), "$.dataKind: expected " + kind);
             if (production)
@@ -43,11 +44,20 @@ public final class MethodDefinitionLoader
             Set<String> facts = new HashSet<>();
             root.list("facts", fact ->
             {
-                fact.fields("id");
+                boolean capacityFact = production && fact.has("capacitySemantics");
+                fact.fields(capacityFact ? new String[] {"id", "capacitySemantics"} : new String[] {"id"});
                 String id = identifier(fact, "id");
                 if (production)
                 {
                     validateProductionFact(id, canonicalItemIds, fact.at("id"));
+                    boolean usableSlots = id.matches("inventory\\.item\\.(0|[1-9][0-9]*)\\.usable_slots");
+                    require(usableSlots == capacityFact,
+                        fact.at("capacitySemantics") + ": required only for inventory item usable-slot facts");
+                    if (capacityFact)
+                    {
+                        require(fact.text("capacitySemantics").equals("FREE_PLUS_OBSERVED_EXACT_ITEM_SLOTS"),
+                            fact.at("capacitySemantics") + ": unsupported capacity semantics");
+                    }
                 }
                 require(facts.add(id), fact.at("id") + ": duplicate fact ID");
                 return id;
@@ -69,7 +79,8 @@ public final class MethodDefinitionLoader
             "freeInventorySlots", "setupItems", "consumes", "produces", "stopConditions", "style", "xpRate", "costs", "danger", "reason"));
         if (production)
         {
-            fields.addAll(List.of("optionalSetup", "sources"));
+            fields.remove("xpRate");
+            fields.addAll(List.of("optionalSetup", "sources", "workingCapacity", "efficiencyProfiles"));
         }
         method.fields(fields.toArray(new String[0]));
         String id = identifier(method, "id");
@@ -80,8 +91,6 @@ public final class MethodDefinitionLoader
         require(production || name.startsWith("Synthetic "), method.at("displayName") + ": expected Synthetic label");
         DefinitionJson start = method.child("start").fields("location", "contact", "instruction");
         DefinitionJson style = method.child("style").fields("attention", "playStyle", "tickManipulation");
-        DefinitionJson xp = method.child("xpRate").fields("minimum", "maximum", "assumptions");
-        double minimumXp = xp.number("minimum", 0, Double.MAX_VALUE);
         DefinitionJson costs = method.child("costs").fields("storageUnlockValue", "setupMinutes", "transitionMinutes",
             "inventoryDisruption", "assumptions");
         List<Requirement> hard = method.list("hardRequirements", value -> requirement(value, facts));
@@ -117,11 +126,55 @@ public final class MethodDefinitionLoader
             new MethodDefinition.Start(start.text("location"), start.text("contact"), start.text("instruction")),
             hard, prep, slots, setup, consumes, method.list("produces", value -> resource(value, facts)), stops,
             new MethodDefinition.Style(style.number("attention", 0, 1), style.text("playStyle"), style.bool("tickManipulation")),
-            new MethodDefinition.XpRate(minimumXp, xp.number("maximum", minimumXp, Double.MAX_VALUE), xp.text("assumptions")),
+            production ? null : xpRate(method.child("xpRate")),
             new MethodDefinition.Costs(costs.number("storageUnlockValue", 0, 1), costs.number("setupMinutes", 0, Double.MAX_VALUE),
                 costs.number("transitionMinutes", 0, Double.MAX_VALUE), costs.number("inventoryDisruption", 0, 1), costs.text("assumptions")),
             method.choice("danger", MethodDefinition.Danger.class), method.text("reason"),
-            production ? MethodDefinition.DataKind.PRODUCTION : MethodDefinition.DataKind.SYNTHETIC_TEST_ONLY, optional, sources);
+            production ? MethodDefinition.DataKind.PRODUCTION : MethodDefinition.DataKind.SYNTHETIC_TEST_ONLY, optional, sources,
+            production ? diagnosticRequirements(method, "workingCapacity", facts) : List.of(),
+            production ? profiles(method, facts) : List.of());
+    }
+
+    private MethodDefinition.XpRate xpRate(DefinitionJson xp)
+    {
+        xp.fields("minimum", "maximum", "assumptions");
+        double minimum = xp.number("minimum", 0, Double.MAX_VALUE);
+        return new MethodDefinition.XpRate(minimum, xp.number("maximum", minimum, Double.MAX_VALUE), xp.text("assumptions"));
+    }
+
+    private List<Requirement> diagnosticRequirements(DefinitionJson object, String field, Set<String> facts)
+    {
+        Set<String> seen = new HashSet<>();
+        return object.list(field, value ->
+        {
+            Requirement r = requirement(value, facts);
+            require(!r.isSafetyRelevant() && !r.isAllowLastObserved(), value.at("fact") + ": profiles require current verification, not safety gates");
+            require(seen.add(r.getFact()), value.at("fact") + ": duplicate diagnostic fact");
+            return r;
+        });
+    }
+
+    private List<MethodDefinition.EfficiencyProfile> profiles(DefinitionJson method, Set<String> facts)
+    {
+        Set<String> ids = new HashSet<>();
+        Set<Integer> priorities = new HashSet<>();
+        return method.list("efficiencyProfiles", value ->
+        {
+            List<String> fields = new ArrayList<>(List.of("id", "priority", "requirements", "efficiency", "notes"));
+            if (value.has("xpRate"))
+            {
+                fields.add("xpRate");
+            }
+            value.fields(fields.toArray(new String[0]));
+            String id = identifier(value, "id");
+            require(ids.add(id), value.at("id") + ": duplicate profile ID");
+            int priority = value.integer("priority", Integer.MAX_VALUE);
+            require(priorities.add(priority), value.at("priority") + ": ambiguous duplicate profile priority");
+            List<Requirement> requirements = diagnosticRequirements(value, "requirements", facts);
+            require(!requirements.isEmpty(), value.at("requirements") + ": profile must have verified requirements");
+            return new MethodDefinition.EfficiencyProfile(id, priority, requirements, value.number("efficiency", 0, 1),
+                value.has("xpRate") ? Optional.of(xpRate(value.child("xpRate"))) : Optional.empty(), value.text("notes"));
+        });
     }
 
     private Requirement requirement(DefinitionJson value, Set<String> facts)
@@ -136,13 +189,17 @@ public final class MethodDefinitionLoader
         {
             require(target >= 1 && target <= 99 && target == Math.rint(target), value.at("target") + ": invalid level range");
         }
-        if (fact.equals("inventory.free_slots") || fact.equals("inventory.occupied_slots"))
+        if (fact.equals("inventory.free_slots") || fact.equals("inventory.occupied_slots") || fact.endsWith(".usable_slots"))
         {
             require(target <= 28 && target == Math.rint(target), value.at("target") + ": invalid slot range");
         }
-        if (fact.startsWith("capability."))
+        if (fact.startsWith("capability.") || fact.matches("container\\.[a-z][a-z0-9_]*\\.owned"))
         {
             require(target == 0 || target == 1, value.at("target") + ": expected boolean capability");
+        }
+        if (fact.startsWith("container."))
+        {
+            require(target == Math.rint(target), value.at("target") + ": expected integer container value");
         }
         return new Requirement(fact, value.choice("comparison", Requirement.Comparison.class), target,
             value.text("description"), allowLast, value.integer("maxAgeSeconds", Integer.MAX_VALUE), safety);
@@ -150,9 +207,11 @@ public final class MethodDefinitionLoader
 
     private void validateProductionFact(String id, Set<Integer> items, String path)
     {
-        if (id.matches("(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.quantity"))
+        if (id.matches("(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.quantity")
+            || id.matches("inventory\\.item\\.(0|[1-9][0-9]*)\\.usable_slots")
+            || id.matches("container\\.[a-z][a-z0-9_]*\\.contents\\.(0|[1-9][0-9]*)\\.quantity"))
         {
-            String number = id.split("\\.")[2];
+            String number = id.split("\\.")[id.startsWith("container.") ? 3 : 2];
             require(number.length() <= 10 && Long.parseLong(number) <= Integer.MAX_VALUE,
                 path + ": invalid item ID");
             require(items.contains(Integer.parseInt(number)), path + ": item ID outside canonical boundary");
@@ -160,7 +219,8 @@ public final class MethodDefinitionLoader
         }
         require(id.matches("skill\\.[a-z][a-z0-9_]*\\.(level|xp)")
             || id.equals("inventory.free_slots") || id.equals("inventory.occupied_slots")
-            || id.startsWith("capability."), path + ": unsupported or malformed production fact ID");
+            || id.startsWith("capability.")
+            || id.matches("container\\.[a-z][a-z0-9_]*\\.(owned|free_capacity)"), path + ": unsupported or malformed production fact ID");
     }
 
     private MethodDefinition.Source source(DefinitionJson value)

@@ -227,6 +227,37 @@ public class AccountStateFactsTest
         assertEquals(UNKNOWN, evaluator.evaluate(method, facts, NOW.plusSeconds(61)).getStatus());
     }
 
+    @Test
+    public void usablePositionsCountStacksOncePreserveProvenanceAndNeverInspectContainers()
+    {
+        Observation<ItemContainerState> inventory = container(Map.of(0, new ItemStack(1234, 500),
+            1, new ItemStack(1234, 1), 2, new ItemStack(5678, 1)), "capacity inventory", NOW.minusSeconds(60));
+        AccountState state = AccountState.builder().inventory(inventory).build();
+        FactLookup facts = new AccountStateFacts(state, NOW);
+        assertEquals(derived(27, inventory), facts.get("inventory.item.1234.usable_slots"));
+        assertEquals(derived(26, inventory), facts.get("inventory.item.5678.usable_slots"));
+        assertEquals(derived(25, inventory), facts.get("inventory.item.9999.usable_slots"));
+        Requirement need = requirement("inventory.item.1234.usable_slots", 27, false);
+        assertEquals(Requirement.Result.SATISFIED, need.evaluate(facts.get(need.getFact()), NOW));
+        assertEquals(Requirement.Result.UNKNOWN, need.evaluate(facts.get(need.getFact()), NOW.plusSeconds(1)));
+        FactLookup historical = new AccountStateFacts(state.toBuilder().inventory(inventory.lastObserved()).build(), NOW);
+        assertEquals(derived(27, inventory).lastObserved(), historical.get(need.getFact()));
+        assertEquals(Requirement.Result.UNKNOWN, need.evaluate(historical.get(need.getFact()), NOW));
+        for (String id : List.of("container.example.owned", "container.example.free_capacity",
+            "container.example.contents.1234.quantity", "equipment.item.1234.usable_slots",
+            "carried.item.1234.usable_slots", "inventory.item.01234.usable_slots"))
+        {
+            assertUnknown(facts.get(id));
+        }
+        assertUnknown(new AccountStateFacts(AccountState.empty(), NOW).get(need.getFact()));
+        assertUnknown(new AccountStateFacts(state.toBuilder().inventory(container(Map.of(28, new ItemStack(1234, 1)),
+            "invalid capacity", NOW)).build(), NOW).get(need.getFact()));
+        assertUnknown(new AccountStateFacts(state.toBuilder().inventory(container(Map.of(),
+            "future capacity", NOW.plusSeconds(1))).build(), NOW).get(need.getFact()));
+        assertEquals(28, new AccountStateFacts(state.toBuilder().inventory(container(Map.of(), "empty capacity", NOW))
+            .build(), NOW).get(need.getFact()).getValue(), 0);
+    }
+
     private static Observation<ItemContainerState> container(Map<Integer, ItemStack> slots, String source, Instant time)
     {
         return Observation.verified(new ItemContainerState(slots), source, time);

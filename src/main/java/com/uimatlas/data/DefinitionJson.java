@@ -94,6 +94,11 @@ final class DefinitionJson
         return this;
     }
 
+    boolean has(String name)
+    {
+        return object.has(name);
+    }
+
     void rejectMarkers()
     {
         rejectMarkers(object, path);

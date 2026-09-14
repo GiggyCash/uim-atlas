@@ -1,12 +1,9 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "dataKind": "PRODUCTION",
   "facts": [
     {
       "id": "capability.diary.morytania_hard"
-    },
-    {
-      "id": "capability.inventory.limestone_cycle_space"
     },
     {
       "id": "capability.poh.games_room"
@@ -16,6 +13,12 @@
     },
     {
       "id": "capability.razmire.serum_208"
+    },
+    {
+      "id": "capability.setup.oak_collection_benchmark"
+    },
+    {
+      "id": "capability.setup.teak_collection_benchmark"
     },
     {
       "id": "capability.supplies.limestone_restock_budget"
@@ -39,6 +42,15 @@
       "id": "carried.item.13114.quantity"
     },
     {
+      "id": "container.flamtaer_bag.contents.3420.quantity"
+    },
+    {
+      "id": "container.plank_sack.contents.8778.quantity"
+    },
+    {
+      "id": "container.plank_sack.contents.8780.quantity"
+    },
+    {
       "id": "inventory.free_slots"
     },
     {
@@ -57,10 +69,22 @@
       "id": "inventory.item.3420.quantity"
     },
     {
+      "id": "inventory.item.3420.usable_slots",
+      "capacitySemantics": "FREE_PLUS_OBSERVED_EXACT_ITEM_SLOTS"
+    },
+    {
       "id": "inventory.item.8778.quantity"
     },
     {
+      "id": "inventory.item.8778.usable_slots",
+      "capacitySemantics": "FREE_PLUS_OBSERVED_EXACT_ITEM_SLOTS"
+    },
+    {
       "id": "inventory.item.8780.quantity"
+    },
+    {
+      "id": "inventory.item.8780.usable_slots",
+      "capacitySemantics": "FREE_PLUS_OBSERVED_EXACT_ITEM_SLOTS"
     },
     {
       "id": "inventory.item.8794.quantity"
@@ -108,7 +132,7 @@
         "fact": "inventory.free_slots",
         "comparison": "AT_LEAST",
         "target": 0,
-        "description": "No additional empty slots required by this initial loose-supply check. Keep room for resupply; capacity with nested containers is unmodeled.",
+        "description": "No additional empty-slot gate to begin repairs with the checked loose starting supplies. Small batches can require more resupply; working and efficient capacity are checked separately.",
         "allowLastObserved": false,
         "maxAgeSeconds": 300,
         "safetyRelevant": false
@@ -170,11 +194,6 @@
         "playStyle": "Focused benchmark; slower play remains possible",
         "tickManipulation": true
       },
-      "xpRate": {
-        "minimum": 50000,
-        "maximum": 72000,
-        "assumptions": "Conditional UIM benchmark: tick-manipulated oak collection, balloon or ring of the elements transport, with or without a plank sack. The endpoints span those setups. Slower play is outside this range; prepared noted supplies may differ. This does not require tick manipulation to participate."
-      },
       "costs": {
         "storageUnlockValue": 0,
         "setupMinutes": 0,
@@ -217,7 +236,7 @@
         {
           "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Construction",
           "reviewedAt": "2026-09-14",
-          "notes": "Direct current source reviewed. UIM supply loops and conditional rate estimates; rates are not forecasts for arbitrary inventories."
+          "notes": "Current source rechecked for prerequisites, supply loop and conditional XP examples. Working/profile thresholds and normalized scores are editorial assumptions, not universal game requirements or measured account forecasts."
         },
         {
           "url": "https://oldschool.runescape.wiki/w/Mahogany_Homes",
@@ -228,6 +247,125 @@
           "url": "https://github.com/runelite/runelite/blob/ac79ed8bd8926bec7bf172aa291574b4d944b0e7/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
           "reviewedAt": "2026-09-14",
           "notes": "Exact ordinary item IDs verified in RuneLite gameval ItemID. Noted, dummy and alternative tools are not equivalent in this catalog."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Plank_sack",
+          "reviewedAt": "2026-09-14",
+          "notes": "Current source rechecked: 28 total planks, directly usable from the sack. Possession, contents and spare capacity are distinct; no observation API added."
+        }
+      ],
+      "workingCapacity": [
+        {
+          "fact": "inventory.item.8778.usable_slots",
+          "comparison": "AT_LEAST",
+          "target": 14,
+          "description": "Working batch assumption: 14 ordinary positions for loose planks, including positions already occupied by this exact plank. The guide illustrates 14/20-slot batches; this is an editorial working target, not a participation minimum or full-contract guarantee.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.ordinary_batch",
+          "priority": 10,
+          "requirements": [
+            {
+              "fact": "inventory.item.8778.quantity",
+              "comparison": "AT_LEAST",
+              "target": 14,
+              "description": "At least 14 loose matching planks already carried: editorial ordinary batch profile, without any XP/hour forecast.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.25,
+          "notes": "Editorial batching input only, not measured XP efficiency. Larger carried batches reduce immediate resupply pressure; no container or transport assumed."
+        },
+        {
+          "id": "profile.loaded_helper",
+          "priority": 20,
+          "requirements": [
+            {
+              "fact": "inventory.item.24882.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Carried plank sack; possession alone never verifies its payload.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "container.plank_sack.contents.8778.quantity",
+              "comparison": "AT_LEAST",
+              "target": 28,
+              "description": "A full payload of 28 verified matching planks usable directly from the carried sack. Unsupported today; empty capacity is not material stock.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.5,
+          "notes": "Editorial batching input only: a verified full matching sack improves payload even with five ordinary free spaces. No XP/hour forecast or verified replenishment loop follows from this alone."
+        },
+        {
+          "id": "profile.collection_benchmark",
+          "priority": 30,
+          "requirements": [
+            {
+              "fact": "inventory.item.24882.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Carried plank sack; possession alone never verifies its payload.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "container.plank_sack.contents.8778.quantity",
+              "comparison": "AT_LEAST",
+              "target": 28,
+              "description": "A full payload of 28 verified matching planks usable directly from the carried sack. Unsupported today; empty capacity is not material stock.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.8778.quantity",
+              "comparison": "AT_LEAST",
+              "target": 14,
+              "description": "At least 14 loose matching planks already carried: editorial ordinary batch profile, without any XP/hour forecast.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "capability.travel.contract_teleports",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Verified usable contract-city travel and supplies for the benchmark cycle, not mere teleport item ownership.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "capability.setup.oak_collection_benchmark",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Unsupported: verified tick-manipulation setup and intended effort, usable axe and oak collection access, funded sawmill, balloon or charged ring route, steel resupply and full working inventory after reserving all tools/transport. The source does not specify an exact universal payload for its rates; do not infer this from slot count alone.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.75,
+          "notes": "Conditional source benchmark; all encoded assumptions need current verification. The 14-plank threshold is an editorial lower check, not proof of the source inventory. The separate complete-setup predicate remains unsupported. Normalized efficiency is an uncalibrated ordinal input, not XP/hour divided by a hidden constant.",
+          "xpRate": {
+            "minimum": 60000,
+            "maximum": 72000,
+            "assumptions": "Conditional novice sack-equipped examples: 60,000/hour with balloon transport through 72,000/hour with ring of the elements, using tick-manipulated oak collection. Not a prediction; no-sack examples and slower play are outside this profile."
+          }
         }
       ]
     },
@@ -239,7 +377,7 @@
       "start": {
         "location": "Falador, south of the park",
         "contact": "Amy",
-        "instruction": "Request a adept contract. Subsequent contracts can come from any contractor."
+        "instruction": "Request an adept contract. Subsequent contracts can come from any contractor."
       },
       "hardRequirements": [
         {
@@ -266,7 +404,7 @@
         "fact": "inventory.free_slots",
         "comparison": "AT_LEAST",
         "target": 0,
-        "description": "No additional empty slots required by this initial loose-supply check. Keep room for resupply; capacity with nested containers is unmodeled.",
+        "description": "No additional empty-slot gate to begin repairs with the checked loose starting supplies. Small batches can require more resupply; working and efficient capacity are checked separately.",
         "allowLastObserved": false,
         "maxAgeSeconds": 300,
         "safetyRelevant": false
@@ -328,11 +466,6 @@
         "playStyle": "Balanced; active travel and repairs",
         "tickManipulation": false
       },
-      "xpRate": {
-        "minimum": 75000,
-        "maximum": 85000,
-        "assumptions": "Conditional UIM benchmark: casual effort without tick manipulation, plank sack and log basket, Avium Savannah teaks, POH portals to reach fairy ring AJP or Outer Fortis, ring of the elements to the sawmill, and unnoted steel bars. Missing these optimizations may reduce rates below this range."
-      },
       "costs": {
         "storageUnlockValue": 0,
         "setupMinutes": 0,
@@ -384,7 +517,7 @@
         {
           "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Construction",
           "reviewedAt": "2026-09-14",
-          "notes": "Direct current source reviewed. UIM supply loops and conditional rate estimates; rates are not forecasts for arbitrary inventories."
+          "notes": "Current source rechecked for prerequisites, supply loop and conditional XP examples. Working/profile thresholds and normalized scores are editorial assumptions, not universal game requirements or measured account forecasts."
         },
         {
           "url": "https://oldschool.runescape.wiki/w/Mahogany_Homes",
@@ -395,6 +528,139 @@
           "url": "https://github.com/runelite/runelite/blob/ac79ed8bd8926bec7bf172aa291574b4d944b0e7/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
           "reviewedAt": "2026-09-14",
           "notes": "Exact ordinary item IDs verified in RuneLite gameval ItemID. Noted, dummy and alternative tools are not equivalent in this catalog."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Plank_sack",
+          "reviewedAt": "2026-09-14",
+          "notes": "Current source rechecked: 28 total planks, directly usable from the sack. Possession, contents and spare capacity are distinct; no observation API added."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Log_basket",
+          "reviewedAt": "2026-09-14",
+          "notes": "Current source rechecked for log storage. Usable collection setup remains unsupported; basket presence alone cannot establish benchmark applicability."
+        }
+      ],
+      "workingCapacity": [
+        {
+          "fact": "inventory.item.8780.usable_slots",
+          "comparison": "AT_LEAST",
+          "target": 14,
+          "description": "Working batch assumption: 14 ordinary positions for loose planks, including positions already occupied by this exact plank. The guide illustrates 14/20-slot batches; this is an editorial working target, not a participation minimum or full-contract guarantee.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.ordinary_batch",
+          "priority": 10,
+          "requirements": [
+            {
+              "fact": "inventory.item.8780.quantity",
+              "comparison": "AT_LEAST",
+              "target": 14,
+              "description": "At least 14 loose matching planks already carried: editorial ordinary batch profile, without any XP/hour forecast.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.25,
+          "notes": "Editorial batching input only, not measured XP efficiency. Larger carried batches reduce immediate resupply pressure; no container or transport assumed."
+        },
+        {
+          "id": "profile.loaded_helper",
+          "priority": 20,
+          "requirements": [
+            {
+              "fact": "inventory.item.24882.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Carried plank sack; possession alone never verifies its payload.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "container.plank_sack.contents.8780.quantity",
+              "comparison": "AT_LEAST",
+              "target": 28,
+              "description": "A full payload of 28 verified matching planks usable directly from the carried sack. Unsupported today; empty capacity is not material stock.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.5,
+          "notes": "Editorial batching input only: a verified full matching sack improves payload even with five ordinary free spaces. No XP/hour forecast or verified replenishment loop follows from this alone."
+        },
+        {
+          "id": "profile.collection_benchmark",
+          "priority": 30,
+          "requirements": [
+            {
+              "fact": "inventory.item.24882.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Carried plank sack; possession alone never verifies its payload.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "container.plank_sack.contents.8780.quantity",
+              "comparison": "AT_LEAST",
+              "target": 28,
+              "description": "A full payload of 28 verified matching planks usable directly from the carried sack. Unsupported today; empty capacity is not material stock.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.8780.quantity",
+              "comparison": "AT_LEAST",
+              "target": 14,
+              "description": "At least 14 loose matching planks already carried: editorial ordinary batch profile, without any XP/hour forecast.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "capability.travel.contract_teleports",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Verified usable contract-city travel and supplies for the benchmark cycle, not mere teleport item ownership.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "capability.supplies.log_basket",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Verified usable log basket for the collection loop; ownership alone or unknown contents/capacity cannot establish this.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "capability.setup.teak_collection_benchmark",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Unsupported: verified usable axe, Avium Savannah teak access, POH portal via AJP with staff or Outer Fortis with quetzal site, charged ring to Earth Altar sawmill, funded plank making, three-bar unnoting reserve, casual effort and full working payload after tools/transport. Do not infer the complete benchmark setup from slot count alone.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.75,
+          "notes": "Conditional source benchmark; all encoded assumptions need current verification. The 14-plank threshold is an editorial lower check, not proof of the source inventory. The separate complete-setup predicate remains unsupported. Normalized efficiency is an uncalibrated ordinal input, not XP/hour divided by a hidden constant.",
+          "xpRate": {
+            "minimum": 75000,
+            "maximum": 85000,
+            "assumptions": "Conditional UIM benchmark: casual effort without tick manipulation, plank sack and log basket, Avium Savannah teaks, POH portals to reach fairy ring AJP or Outer Fortis, ring of the elements to the sawmill, and unnoted steel bars. Missing these optimizations may reduce rates below this range."
+          }
         }
       ]
     },
@@ -475,10 +741,10 @@
           "safetyRelevant": false
         },
         {
-          "fact": "capability.inventory.limestone_cycle_space",
+          "fact": "inventory.item.3420.usable_slots",
           "comparison": "AT_LEAST",
-          "target": 1,
-          "description": "Have 20 inventory positions usable for bricks during collection, counting bricks already carried. Currently unsupported; do not require 20 extra empty slots after loading.",
+          "target": 20,
+          "description": "The encoded shop loop needs 20 ordinary brick positions: free slots plus positions already occupied by exact loose bricks. Five free positions plus ten carried brick positions leaves a five-position preparation shortfall. Not 20 additional empty slots after loading.",
           "allowLastObserved": false,
           "maxAgeSeconds": 300,
           "safetyRelevant": false
@@ -565,11 +831,6 @@
         "playStyle": "Active; frequent purchases and rebuilding",
         "tickManipulation": false
       },
-      "xpRate": {
-        "minimum": 70000,
-        "maximum": 80000,
-        "assumptions": "Guide supply-loop benchmark: 70,000–75,000 with mistakes, up to 80,000. Assumes the existing bag, 20 brick positions, shop access, funded resupply, house teleports and Morytania legs travel. Not a measured forecast for this account."
-      },
       "costs": {
         "storageUnlockValue": 0,
         "setupMinutes": 0,
@@ -594,7 +855,7 @@
         {
           "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Construction",
           "reviewedAt": "2026-09-14",
-          "notes": "Direct current source reviewed. UIM supply loops and conditional rate estimates; rates are not forecasts for arbitrary inventories."
+          "notes": "Current source rechecked for prerequisites, supply loop and conditional XP examples. Working/profile thresholds and normalized scores are editorial assumptions, not universal game requirements or measured account forecasts."
         },
         {
           "url": "https://oldschool.runescape.wiki/w/Limestone_attack_stone",
@@ -615,6 +876,59 @@
           "url": "https://github.com/runelite/runelite/blob/ac79ed8bd8926bec7bf172aa291574b4d944b0e7/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
           "reviewedAt": "2026-09-14",
           "notes": "Exact ordinary item IDs verified in RuneLite gameval ItemID. Noted, dummy and alternative tools are not equivalent in this catalog."
+        }
+      ],
+      "workingCapacity": [
+        {
+          "fact": "inventory.item.3420.usable_slots",
+          "comparison": "AT_LEAST",
+          "target": 20,
+          "description": "The encoded shop loop needs 20 ordinary brick positions: free slots plus positions already occupied by exact loose bricks. Five free positions plus ten carried brick positions leaves a five-position preparation shortfall. Not 20 additional empty slots after loading.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "efficiencyProfiles": [
+        {
+          "id": "profile.full_collection_cycle",
+          "priority": 10,
+          "requirements": [
+            {
+              "fact": "container.flamtaer_bag.contents.3420.quantity",
+              "comparison": "AT_LEAST",
+              "target": 60,
+              "description": "Verified 60-brick payload in the carried bag for the documented 80-brick cycle; bag presence is not contents.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "inventory.item.3420.quantity",
+              "comparison": "AT_LEAST",
+              "target": 20,
+              "description": "Twenty loose bricks alongside the verified 60-brick bag payload for the full benchmark cycle.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "capability.travel.run_energy_support",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Verified run-energy support for this conservative benchmark profile; optional for method eligibility.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ],
+          "efficiency": 0.75,
+          "notes": "Conditional loop benchmark only when the method is ready and full cycle payload is verified. Run support is a conservative added profile assumption. The normalized input is editorial and uncalibrated.",
+          "xpRate": {
+            "minimum": 70000,
+            "maximum": 80000,
+            "assumptions": "Guide supply-loop benchmark: 70,000–75,000 with mistakes, up to 80,000. Assumes the existing bag, 20 brick positions, shop access, funded resupply, house teleports and Morytania legs travel. Not a measured forecast for this account."
+          }
         }
       ]
     }

@@ -54,8 +54,8 @@ public class ProductionConstructionCatalogTest
         {
             assertEquals(MethodDefinition.DataKind.PRODUCTION, method.getDataKind());
             assertEquals("CONSTRUCTION", method.getActivity());
-            assertTrue(method.getXpRate().getMinimum() < method.getXpRate().getMaximum());
-            assertFalse(method.getXpRate().getAssumptions().isBlank());
+            assertTrue(benchmark(method).getMinimum() < benchmark(method).getMaximum());
+            assertFalse(benchmark(method).getAssumptions().isBlank());
             assertEquals(0, method.getCosts().getStorageUnlockValue(), 0);
             assertTrue(method.getSources().size() >= 2);
             for (MethodDefinition.Source source : method.getSources())
@@ -67,12 +67,12 @@ public class ProductionConstructionCatalogTest
             assertThrows(UnsupportedOperationException.class, method.getSources()::clear);
             assertThrows(UnsupportedOperationException.class, method.getOptionalSetup()::clear);
         }
-        assertEquals(50000, methods.get(0).getXpRate().getMinimum(), 0);
-        assertEquals(72000, methods.get(0).getXpRate().getMaximum(), 0);
-        assertEquals(75000, methods.get(1).getXpRate().getMinimum(), 0);
-        assertEquals(85000, methods.get(1).getXpRate().getMaximum(), 0);
-        assertEquals(70000, methods.get(2).getXpRate().getMinimum(), 0);
-        assertEquals(80000, methods.get(2).getXpRate().getMaximum(), 0);
+        assertEquals(60000, benchmark(methods.get(0)).getMinimum(), 0);
+        assertEquals(72000, benchmark(methods.get(0)).getMaximum(), 0);
+        assertEquals(75000, benchmark(methods.get(1)).getMinimum(), 0);
+        assertEquals(85000, benchmark(methods.get(1)).getMaximum(), 0);
+        assertEquals(70000, benchmark(methods.get(2)).getMinimum(), 0);
+        assertEquals(80000, benchmark(methods.get(2)).getMaximum(), 0);
     }
 
     @Test
@@ -175,9 +175,9 @@ public class ProductionConstructionCatalogTest
         Map<String, Observation<Double>> facts = ready(method);
         facts.put("inventory.free_slots", known(0));
         assertEquals(AVAILABLE, evaluate(method, facts).getStatus());
-        facts.remove("capability.inventory.limestone_cycle_space");
+        facts.remove("inventory.item.3420.usable_slots");
         assertEquals(UNKNOWN, evaluate(method, facts).getStatus());
-        facts.put("capability.inventory.limestone_cycle_space", known(0));
+        facts.put("inventory.item.3420.usable_slots", known(0));
         assertEquals(NEEDS_PREP, evaluate(method, facts).getStatus());
     }
 
@@ -226,9 +226,9 @@ public class ProductionConstructionCatalogTest
         {
             mutate(root -> first(root).getAsJsonArray("hardRequirements").get(0).getAsJsonObject().addProperty("target", invalid), "level range");
         }
-        mutate(root -> first(root).getAsJsonObject("xpRate").addProperty("minimum", -1), "minimum");
-        mutate(root -> first(root).getAsJsonObject("xpRate").addProperty("maximum", 1), "maximum");
-        mutate(root -> first(root).getAsJsonObject("xpRate").addProperty("maximum", "Infinity"), "number");
+        mutate(root -> benchmarkJson(root).getAsJsonObject("xpRate").addProperty("minimum", -1), "minimum");
+        mutate(root -> benchmarkJson(root).getAsJsonObject("xpRate").addProperty("maximum", 1), "maximum");
+        mutate(root -> benchmarkJson(root).getAsJsonObject("xpRate").addProperty("maximum", "Infinity"), "number");
         mutate(root -> first(root).getAsJsonObject("freeInventorySlots").addProperty("target", 29), "slot range");
         mutate(root -> first(root).getAsJsonObject("costs").addProperty("transitionMinutes", -1), "transitionMinutes");
         mutate(root -> first(root).getAsJsonArray("optionalSetup").get(0).getAsJsonObject().addProperty("safetyRelevant", true), "safety gates");
@@ -285,7 +285,7 @@ public class ProductionConstructionCatalogTest
     }
 
     // Only public compile-time API constants are inspected in tests; no runtime reflection or network.
-    private static Set<Integer> canonicalItems() throws Exception
+    static Set<Integer> canonicalItems() throws Exception
     {
         Set<Integer> ids = new HashSet<>();
         for (Field field : ItemID.class.getFields())
@@ -298,7 +298,7 @@ public class ProductionConstructionCatalogTest
         return ids;
     }
 
-    private static String json() throws Exception
+    static String json() throws Exception
     {
         try (java.io.InputStream input = ProductionConstructionCatalogTest.class.getResourceAsStream(CATALOG))
         {
@@ -307,12 +307,12 @@ public class ProductionConstructionCatalogTest
         }
     }
 
-    private static List<MethodDefinition> load() throws Exception
+    static List<MethodDefinition> load() throws Exception
     {
         return new MethodDefinitionLoader().loadProduction(new StringReader(json()), canonicalItems());
     }
 
-    private static Map<String, Observation<Double>> ready(MethodDefinition method)
+    static Map<String, Observation<Double>> ready(MethodDefinition method)
     {
         Map<String, Observation<Double>> facts = new HashMap<>();
         Stream.of(method.getHardRequirements(), method.getPreparation(), method.getSetupItems(), method.getConsumes())
@@ -331,7 +331,7 @@ public class ProductionConstructionCatalogTest
         return new MethodEvaluator().evaluate(method, facts, NOW);
     }
 
-    private static void mutate(Consumer<JsonObject> mutation, String expected) throws Exception
+    static void mutate(Consumer<JsonObject> mutation, String expected) throws Exception
     {
         JsonObject root = new JsonParser().parse(json()).getAsJsonObject();
         mutation.accept(root);
@@ -340,9 +340,20 @@ public class ProductionConstructionCatalogTest
         assertTrue(exception.getMessage(), exception.getMessage().contains(expected));
     }
 
-    private static JsonObject first(JsonObject root)
+    static JsonObject first(JsonObject root)
     {
         return root.getAsJsonArray("methods").get(0).getAsJsonObject();
+    }
+
+    private static MethodDefinition.XpRate benchmark(MethodDefinition method)
+    {
+        assertNull(method.getXpRate());
+        return method.getEfficiencyProfiles().stream().flatMap(p -> p.getXpRate().stream()).findFirst().orElseThrow();
+    }
+
+    private static JsonObject benchmarkJson(JsonObject root)
+    {
+        return first(root).getAsJsonArray("efficiencyProfiles").get(2).getAsJsonObject();
     }
 
     private static JsonObject source(JsonObject root)

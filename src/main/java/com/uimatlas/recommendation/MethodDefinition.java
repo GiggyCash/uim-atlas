@@ -2,6 +2,7 @@ package com.uimatlas.recommendation;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import lombok.Value;
 
 /** Immutable metadata, constructed by the validated resource loader. No game/client objects. */
@@ -40,6 +41,7 @@ public class MethodDefinition
     List<ResourceAmount> produces;
     List<Requirement> stopConditions;
     Style style;
+    /** Legacy synthetic benchmark only; production rates belong to efficiency profiles. */
     XpRate xpRate;
     Costs costs;
     Danger danger;
@@ -47,6 +49,8 @@ public class MethodDefinition
     DataKind dataKind;
     List<Requirement> optionalSetup;
     List<Source> sources;
+    List<Requirement> workingCapacity;
+    List<EfficiencyProfile> efficiencyProfiles;
 
     public MethodDefinition(String id, String displayName, String category, String activity, Start start,
         List<Requirement> hardRequirements, List<Requirement> preparation, Requirement freeInventorySlots,
@@ -63,6 +67,18 @@ public class MethodDefinition
         List<Requirement> setupItems, List<Requirement> consumes, List<ResourceAmount> produces,
         List<Requirement> stopConditions, Style style, XpRate xpRate, Costs costs, Danger danger, String reason,
         DataKind dataKind, List<Requirement> optionalSetup, List<Source> sources)
+    {
+        this(id, displayName, category, activity, start, hardRequirements, preparation, freeInventorySlots,
+            setupItems, consumes, produces, stopConditions, style, xpRate, costs, danger, reason,
+            dataKind, optionalSetup, sources, List.of(), List.of());
+    }
+
+    public MethodDefinition(String id, String displayName, String category, String activity, Start start,
+        List<Requirement> hardRequirements, List<Requirement> preparation, Requirement freeInventorySlots,
+        List<Requirement> setupItems, List<Requirement> consumes, List<ResourceAmount> produces,
+        List<Requirement> stopConditions, Style style, XpRate xpRate, Costs costs, Danger danger, String reason,
+        DataKind dataKind, List<Requirement> optionalSetup, List<Source> sources,
+        List<Requirement> workingCapacity, List<EfficiencyProfile> efficiencyProfiles)
     {
         this.id = id;
         this.displayName = displayName;
@@ -84,6 +100,30 @@ public class MethodDefinition
         this.dataKind = dataKind;
         this.optionalSetup = List.copyOf(optionalSetup);
         this.sources = List.copyOf(sources);
+        this.workingCapacity = List.copyOf(workingCapacity);
+        this.efficiencyProfiles = List.copyOf(efficiencyProfiles);
+    }
+
+    @Value
+    public static class EfficiencyProfile
+    {
+        String id;
+        int priority;
+        List<Requirement> requirements;
+        double efficiency;
+        Optional<XpRate> xpRate;
+        String notes;
+
+        public EfficiencyProfile(String id, int priority, List<Requirement> requirements,
+            double efficiency, Optional<XpRate> xpRate, String notes)
+        {
+            this.id = id;
+            this.priority = priority;
+            this.requirements = List.copyOf(requirements);
+            this.efficiency = efficiency;
+            this.xpRate = xpRate;
+            this.notes = notes;
+        }
     }
 
     @Value
