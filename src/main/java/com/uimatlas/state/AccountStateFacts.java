@@ -51,6 +51,25 @@ public final class AccountStateFacts implements FactLookup
                 }
             });
         }
+        Observation<Map<Integer, QuestStatus>> quests = observedBy(state.getQuests(), asOf);
+        if (quests.isKnown())
+        {
+            quests.getValue().forEach((id, status) ->
+            {
+                if (id < 0 || status == QuestStatus.UNKNOWN)
+                {
+                    return;
+                }
+                String prefix = "quest." + id;
+                projected.put(prefix + ".complete", derived(status == QuestStatus.FINISHED ? 1 : 0, quests));
+                projected.put(prefix + ".started", derived(status == QuestStatus.NOT_STARTED ? 0 : 1, quests));
+            });
+        }
+        Observation<Integer> questPoints = observedBy(state.getQuestPoints(), asOf);
+        if (questPoints.isKnown())
+        {
+            projected.put("account.quest_points", derived(questPoints.getValue(), questPoints));
+        }
         state.getContainers().forEach((id, container) ->
         {
             if (!CONTAINER_ID.matcher(id).matches())

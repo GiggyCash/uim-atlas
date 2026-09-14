@@ -19,6 +19,8 @@ public class AccountState
     @Builder.Default
     Observation<Map<Integer, QuestStatus>> quests = Observation.unknown();
     @Builder.Default
+    Observation<Integer> questPoints = Observation.unknown();
+    @Builder.Default
     Observation<Map<String, Boolean>> capabilities = Observation.unknown();
     @Singular("container")
     Map<String, ContainerState> containers;

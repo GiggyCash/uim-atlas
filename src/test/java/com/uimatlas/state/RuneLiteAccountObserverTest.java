@@ -17,6 +17,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.api.gameval.VarPlayerID;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -41,6 +42,7 @@ public class RuneLiteAccountObserverTest
         when(client.getBoostedSkillLevel(any(Skill.class))).thenReturn(12);
         when(client.getSkillExperience(any(Skill.class))).thenReturn(1154);
         when(client.getIntStack()).thenReturn(new int[]{2});
+        when(client.getVarpValue(VarPlayerID.QP)).thenReturn(175);
         when(inventory.getItems()).thenReturn(new Item[]{new Item(995, 1000), new Item(-1, 0), new Item(100, 1)});
         when(client.getItemContainer(InventoryID.INV)).thenReturn(inventory);
         ItemContainer equipment = mock(ItemContainer.class);
@@ -74,6 +76,9 @@ public class RuneLiteAccountObserverTest
         assertTrue(state.getLocation().getValue().getWorldTypes().contains("MEMBERS"));
         assertEquals(QuestStatus.FINISHED, state.getQuests().getValue().get(Quest.values()[0].getId()));
         assertEquals(Observation.Confidence.LAST_OBSERVED, state.getQuests().getConfidence());
+        assertEquals(175, state.getQuestPoints().getValue().intValue());
+        assertEquals(Observation.Confidence.LAST_OBSERVED, state.getQuestPoints().getConfidence());
+        assertEquals("RuneLite: VarPlayerID.QP", state.getQuestPoints().getSource());
         assertEquals(Boolean.TRUE, state.getCapabilities().getValue().get("capability.poh.owned"));
         assertEquals(Observation.Confidence.VERIFIED_NOW, state.getCapabilities().getConfidence());
         assertEquals("RuneLite: server varbit POH_HOUSE_LOCATION", state.getCapabilities().getSource());
@@ -135,14 +140,33 @@ public class RuneLiteAccountObserverTest
         when(client.getAccountHash()).thenReturn(456L);
         when(client.getVarbitValue(VarbitID.IRONMAN)).thenReturn(0);
         when(client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION)).thenReturn(0);
+        when(client.getVarpValue(VarPlayerID.QP)).thenReturn(200);
         when(client.getItemContainer(InventoryID.INV)).thenReturn(null);
         observer.refresh();
         assertFalse(states.getSnapshot().isUltimateIronman());
         assertFalse(states.getSnapshot().getInventory().isKnown());
         assertFalse(states.getSnapshot().getCapabilities().isKnown());
+        assertEquals(200, states.getSnapshot().getQuestPoints().getValue().intValue());
         when(client.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
         observer.refresh();
         assertEquals(AccountState.empty(), states.getSnapshot());
+    }
+
+    @Test
+    public void invalidOrUnavailableQuestPointsRemainUnknownAndRetryOnQuestRefresh()
+    {
+        when(client.getVarpValue(VarPlayerID.QP)).thenReturn(-1);
+        observer.refresh();
+        assertFalse(states.getSnapshot().getQuestPoints().isKnown());
+        when(client.getVarpValue(VarPlayerID.QP)).thenReturn(175);
+        observer.questsChanged();
+        observer.refresh();
+        assertEquals(175, states.getSnapshot().getQuestPoints().getValue().intValue());
+
+        when(client.getVarpValue(VarPlayerID.QP)).thenThrow(new IllegalStateException("varp unavailable"));
+        observer.questsChanged();
+        observer.refresh();
+        assertFalse(states.getSnapshot().getQuestPoints().isKnown());
     }
 
     @Test

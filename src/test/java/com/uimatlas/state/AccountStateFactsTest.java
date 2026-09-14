@@ -58,6 +58,40 @@ public class AccountStateFactsTest
     }
 
     @Test
+    public void questFactsAndQuestPointsPreserveStateSemanticsAndProvenance()
+    {
+        Observation<Map<Integer, QuestStatus>> quests = Observation.map(Map.of(
+            1, QuestStatus.NOT_STARTED,
+            2, QuestStatus.IN_PROGRESS,
+            3, QuestStatus.FINISHED,
+            4, QuestStatus.UNKNOWN), "RuneLite: Quest.getState", NOW.minusSeconds(10)).lastObserved();
+        Observation<Integer> points = Observation.verified(175,
+            "RuneLite: VarPlayerID.QP", NOW.minusSeconds(10)).lastObserved();
+        FactLookup facts = new AccountStateFacts(AccountState.builder()
+            .quests(quests).questPoints(points).build(), NOW);
+        assertEquals(0.0, facts.get("quest.1.started").getValue(), 0);
+        assertEquals(0.0, facts.get("quest.1.complete").getValue(), 0);
+        assertEquals(1.0, facts.get("quest.2.started").getValue(), 0);
+        assertEquals(0.0, facts.get("quest.2.complete").getValue(), 0);
+        assertEquals(1.0, facts.get("quest.3.started").getValue(), 0);
+        assertEquals(1.0, facts.get("quest.3.complete").getValue(), 0);
+        assertUnknown(facts.get("quest.4.started"));
+        assertUnknown(facts.get("quest.4.complete"));
+        assertEquals(175.0, facts.get("account.quest_points").getValue(), 0);
+        assertEquals(Observation.Confidence.LAST_OBSERVED, facts.get("quest.3.complete").getConfidence());
+        assertEquals("RuneLite: Quest.getState", facts.get("quest.3.complete").getSource());
+        assertEquals(NOW.minusSeconds(10), facts.get("quest.3.complete").getObservedAt());
+        assertEquals(Observation.Confidence.LAST_OBSERVED, facts.get("account.quest_points").getConfidence());
+        assertEquals("RuneLite: VarPlayerID.QP", facts.get("account.quest_points").getSource());
+
+        FactLookup future = new AccountStateFacts(AccountState.builder()
+            .quests(Observation.map(Map.of(3, QuestStatus.FINISHED), "future quests", NOW.plusSeconds(1)))
+            .questPoints(Observation.verified(175, "future points", NOW.plusSeconds(1))).build(), NOW);
+        assertUnknown(future.get("quest.3.complete"));
+        assertUnknown(future.get("account.quest_points"));
+    }
+
+    @Test
     public void unknownSectionsNeverBecomeZeroOrFreeSpace()
     {
         FactLookup facts = new AccountStateFacts(AccountState.empty(), NOW);

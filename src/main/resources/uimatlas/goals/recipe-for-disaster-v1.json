@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {"id": "account.quest_points"},
+    {"id": "capability.combat.rfd_no_prayer"},
+    {"id": "skill.agility.level"},
+    {"id": "skill.cooking.level"},
+    {"id": "skill.crafting.level"},
+    {"id": "skill.firemaking.level"},
+    {"id": "skill.fishing.level"},
+    {"id": "skill.fletching.level"},
+    {"id": "skill.herblore.level"},
+    {"id": "skill.magic.level"},
+    {"id": "skill.mining.level"},
+    {"id": "skill.ranged.level"},
+    {"id": "skill.smithing.level"},
+    {"id": "skill.thieving.level"},
+    {"id": "skill.woodcutting.level"},
+    {"id": "quest.4.complete"},
+    {"id": "quest.8.complete"},
+    {"id": "quest.9.complete"},
+    {"id": "quest.17.complete"},
+    {"id": "quest.25.complete"},
+    {"id": "quest.27.complete"},
+    {"id": "quest.48.complete"},
+    {"id": "quest.52.complete"},
+    {"id": "quest.60.complete"},
+    {"id": "quest.64.complete"},
+    {"id": "quest.72.complete"},
+    {"id": "quest.74.complete"},
+    {"id": "quest.85.started"},
+    {"id": "quest.95.complete"},
+    {"id": "quest.101.complete"},
+    {"id": "quest.103.complete"},
+    {"id": "quest.129.complete"},
+    {"id": "quest.133.complete"},
+    {"id": "quest.154.complete"},
+    {"id": "quest.158.complete"},
+    {"id": "quest.160.complete"},
+    {"id": "quest.2307.complete"},
+    {"id": "quest.2308.complete"},
+    {"id": "quest.2309.complete"},
+    {"id": "quest.2310.complete"},
+    {"id": "quest.2311.complete"},
+    {"id": "quest.2312.complete"},
+    {"id": "quest.2313.complete"},
+    {"id": "quest.2314.complete"},
+    {"id": "quest.2315.complete"},
+    {"id": "quest.2316.complete"}
+  ],
+  "goals": [
+    {
+      "id": "goal.recipe_for_disaster",
+      "displayName": "Recipe for Disaster",
+      "completion": {"fact": "quest.2316.complete", "comparison": "EQUAL", "target": 1, "description": "Defeat the Culinaromancer and complete Recipe for Disaster", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+      "requirements": [
+        {"fact": "account.quest_points", "comparison": "AT_LEAST", "target": 175, "description": "Reach 175 Quest points for the final chapter", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+        {"fact": "skill.cooking.level", "comparison": "AT_LEAST", "target": 70, "description": "Conservative unboosted target for the boostable level 70 Cooking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.agility.level", "comparison": "AT_LEAST", "target": 48, "description": "Meet the non-boostable level 48 Agility requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.mining.level", "comparison": "AT_LEAST", "target": 50, "description": "Conservative unboosted target for the boostable level 50 Mining requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.fishing.level", "comparison": "AT_LEAST", "target": 53, "description": "Conservative unboosted target for the boostable level 53 Fishing requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.thieving.level", "comparison": "AT_LEAST", "target": 53, "description": "Meet the non-boostable level 53 Thieving requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 25, "description": "Conservative unboosted target for the boostable level 25 Herblore requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.magic.level", "comparison": "AT_LEAST", "target": 59, "description": "Conservative unboosted target for the boostable level 59 Magic requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.smithing.level", "comparison": "AT_LEAST", "target": 40, "description": "Conservative unboosted target for the boostable level 40 Smithing requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.firemaking.level", "comparison": "AT_LEAST", "target": 50, "description": "Conservative unboosted target for the boostable level 50 Firemaking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.ranged.level", "comparison": "AT_LEAST", "target": 40, "description": "Meet the non-boostable level 40 Ranged requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.crafting.level", "comparison": "AT_LEAST", "target": 40, "description": "Conservative unboosted target for the boostable level 40 Crafting requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.fletching.level", "comparison": "AT_LEAST", "target": 10, "description": "Conservative unboosted target for the boostable level 10 Fletching requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "skill.woodcutting.level", "comparison": "AT_LEAST", "target": 36, "description": "Conservative unboosted target for the boostable level 36 Woodcutting requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+        {"fact": "capability.combat.rfd_no_prayer", "comparison": "EQUAL", "target": 1, "description": "Verify ability to defeat the required high-level encounters, including the finale without Prayer", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": true}
+      ],
+      "milestones": [
+        {
+          "id": "milestone.rfd.introduction",
+          "displayName": "Another Cook's Quest",
+          "completion": {"fact": "quest.2307.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Another Cook's Quest", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [],
+          "requirements": [
+            {"fact": "skill.cooking.level", "comparison": "AT_LEAST", "target": 10, "description": "Reach the boostable level 10 Cooking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+            {"fact": "quest.17.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Cook's Assistant", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster", "reviewedAt": "2026-09-14", "notes": "Current main quest page: opening chapter requires 10 Cooking and Cook's Assistant."}]
+        },
+        {
+          "id": "milestone.rfd.mountain_dwarf",
+          "displayName": "Freeing the Mountain Dwarf",
+          "completion": {"fact": "quest.2308.complete", "comparison": "EQUAL", "target": 1, "description": "Free the Mountain Dwarf", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [{"fact": "quest.52.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Fishing Contest", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_the_Mountain_Dwarf", "reviewedAt": "2026-09-14", "notes": "Current subquest page: Another Cook's Quest and Fishing Contest are the progression requirements; the conditional Icefiend/item route is execution scope."}]
+        },
+        {
+          "id": "milestone.rfd.goblin_generals",
+          "displayName": "Freeing the Goblin Generals",
+          "completion": {"fact": "quest.2309.complete", "comparison": "EQUAL", "target": 1, "description": "Free the Goblin Generals", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [{"fact": "quest.64.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Goblin Diplomacy", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_the_Goblin_generals", "reviewedAt": "2026-09-14", "notes": "Current subquest page: Another Cook's Quest and Goblin Diplomacy are required."}]
+        },
+        {
+          "id": "milestone.rfd.pirate_pete",
+          "displayName": "Freeing Pirate Pete",
+          "completion": {"fact": "quest.2310.complete", "comparison": "EQUAL", "target": 1, "description": "Free Pirate Pete", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [{"fact": "skill.cooking.level", "comparison": "AT_LEAST", "target": 31, "description": "Reach the boostable level 31 Cooking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false}],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Pirate_Pete", "reviewedAt": "2026-09-14", "notes": "Current subquest page: 31 Cooking and Another Cook's Quest are required; combat, item, weight and underwater inventory details remain Quest Helper execution scope."}]
+        },
+        {
+          "id": "milestone.rfd.lumbridge_guide",
+          "displayName": "Freeing the Lumbridge Guide",
+          "completion": {"fact": "quest.2311.complete", "comparison": "EQUAL", "target": 1, "description": "Free the Lumbridge Guide", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [
+            {"fact": "skill.cooking.level", "comparison": "AT_LEAST", "target": 40, "description": "Reach the boostable level 40 Cooking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+            {"fact": "quest.8.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Big Chompy Bird Hunting", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.9.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Biohazard", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.25.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Demon Slayer", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.101.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Murder Mystery", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.103.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Nature Spirit", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.160.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Witch's House", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_the_Lumbridge_Guide", "reviewedAt": "2026-09-14", "notes": "Current subquest page: 40 Cooking and the listed direct prerequisite quests are required; their transitive prerequisites are proven by completion."}]
+        },
+        {
+          "id": "milestone.rfd.evil_dave",
+          "displayName": "Freeing Evil Dave",
+          "completion": {"fact": "quest.2312.complete", "comparison": "EQUAL", "target": 1, "description": "Free Evil Dave", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [
+            {"fact": "quest.60.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Gertrude's Cat", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.129.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Shadow of the Storm", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Evil_Dave", "reviewedAt": "2026-09-14", "notes": "Current subquest page: Gertrude's Cat, Another Cook's Quest and Shadow of the Storm are required; 25 Cooking is presented as recommended, not a hard requirement."}]
+        },
+        {
+          "id": "milestone.rfd.skrach_uglogwee",
+          "displayName": "Freeing Skrach Uglogwee",
+          "completion": {"fact": "quest.2313.complete", "comparison": "EQUAL", "target": 1, "description": "Free Skrach Uglogwee", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [
+            {"fact": "skill.cooking.level", "comparison": "AT_LEAST", "target": 41, "description": "Reach the boostable level 41 Cooking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+            {"fact": "skill.firemaking.level", "comparison": "AT_LEAST", "target": 20, "description": "Reach the boostable level 20 Firemaking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+            {"fact": "quest.8.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Big Chompy Bird Hunting", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Skrach_Uglogwee", "reviewedAt": "2026-09-14", "notes": "Current subquest page: 41 Cooking, 20 Firemaking, Big Chompy Bird Hunting and Another Cook's Quest are required."}]
+        },
+        {
+          "id": "milestone.rfd.sir_amik_varze",
+          "displayName": "Freeing Sir Amik Varze",
+          "completion": {"fact": "quest.2314.complete", "comparison": "EQUAL", "target": 1, "description": "Free Sir Amik Varze", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [
+            {"fact": "account.quest_points", "comparison": "AT_LEAST", "target": 107, "description": "Reach 107 Quest points", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.85.started", "comparison": "EQUAL", "target": 1, "description": "Start Legends' Quest to access the Kharazi Jungle", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.48.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Family Crest", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.72.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Heroes' Quest", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.133.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Shilo Village", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.154.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Underground Pass", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.158.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Waterfall Quest", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_Sir_Amik_Varze", "reviewedAt": "2026-09-14", "notes": "Current subquest page: 107 Quest points, started Legends' Quest/Kharazi access and the listed direct quest completions are required; combat and items remain execution scope."}]
+        },
+        {
+          "id": "milestone.rfd.king_awowogei",
+          "displayName": "Freeing King Awowogei",
+          "completion": {"fact": "quest.2315.complete", "comparison": "EQUAL", "target": 1, "description": "Free King Awowogei", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [{"id": "milestone.rfd.introduction"}],
+          "requirements": [
+            {"fact": "skill.cooking.level", "comparison": "AT_LEAST", "target": 70, "description": "Reach the boostable level 70 Cooking requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+            {"fact": "skill.agility.level", "comparison": "AT_LEAST", "target": 48, "description": "Meet the non-boostable level 48 Agility requirement", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false},
+            {"fact": "quest.95.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Monkey Madness I", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Freeing_King_Awowogei", "reviewedAt": "2026-09-14", "notes": "Current subquest page: 70 Cooking, 48 Agility, Monkey Madness I and Another Cook's Quest are required; combat and item details remain execution scope."}]
+        },
+        {
+          "id": "milestone.rfd.culinaromancer",
+          "displayName": "Defeating the Culinaromancer",
+          "completion": {"fact": "quest.2316.complete", "comparison": "EQUAL", "target": 1, "description": "Defeat the Culinaromancer", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+          "dependsOn": [
+            {"id": "milestone.rfd.mountain_dwarf"},
+            {"id": "milestone.rfd.goblin_generals"},
+            {"id": "milestone.rfd.pirate_pete"},
+            {"id": "milestone.rfd.lumbridge_guide"},
+            {"id": "milestone.rfd.evil_dave"},
+            {"id": "milestone.rfd.skrach_uglogwee"},
+            {"id": "milestone.rfd.sir_amik_varze"},
+            {"id": "milestone.rfd.king_awowogei"}
+          ],
+          "requirements": [
+            {"fact": "account.quest_points", "comparison": "AT_LEAST", "target": 175, "description": "Reach 175 Quest points", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.27.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Desert Treasure I", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.74.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Horror from the Deep", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "quest.4.complete", "comparison": "EQUAL", "target": 1, "description": "Complete Alfred Grimhand's Barcrawl", "allowLastObserved": true, "maxAgeSeconds": 86400, "safetyRelevant": false},
+            {"fact": "capability.combat.rfd_no_prayer", "comparison": "EQUAL", "target": 1, "description": "Verify ability to defeat the finale encounters without Prayer", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": true}
+          ],
+          "sources": [{"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster/Defeating_the_Culinaromancer", "reviewedAt": "2026-09-14", "notes": "Current finale page: 175 Quest points, all eight freeing chapters, Desert Treasure I, Horror from the Deep, Alfred Grimhand's Barcrawl and no-Prayer combat are required."}]
+        }
+      ],
+      "rewards": [
+        {"id": "reward.culinaromancers_chest.full_access", "description": "Full access to the Culinaromancer's Chest"},
+        {"id": "reward.barrows_gloves.purchase_access", "description": "Access to purchase Barrows gloves"}
+      ],
+      "sources": [
+        {"url": "https://oldschool.runescape.wiki/w/Recipe_for_Disaster", "reviewedAt": "2026-09-14", "notes": "Current aggregate requirements, ten-part structure and rewards; skill targets marked boostable are stored as conservative unboosted planning targets."},
+        {"url": "https://oldschool.runescape.wiki/w/Quest_points", "reviewedAt": "2026-09-14", "notes": "Current Quest-point semantics and maximum boundary of 333."},
+        {"url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/Quest.java", "reviewedAt": "2026-09-14", "notes": "Pinned RuneLite semantic quest IDs and Quest.getState completion API."},
+        {"url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/VarPlayerID.java", "reviewedAt": "2026-09-14", "notes": "Pinned generated VarPlayerID.QP constant used by the project."},
+        {"url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-client/src/main/java/net/runelite/client/plugins/achievementdiary/QuestPointRequirement.java", "reviewedAt": "2026-09-14", "notes": "Pinned built-in RuneLite requirement reads quest points through Client.getVarpValue using the QP VarPlayer."},
+        {"url": "https://static.runelite.net/runelite-api/apidocs/net/runelite/api/Client.html", "reviewedAt": "2026-09-14", "notes": "Pinned RuneLite Client getVarpValue API contract."}
+      ]
+    }
+  ]
+}

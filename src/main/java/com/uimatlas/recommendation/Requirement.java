@@ -50,11 +50,13 @@ public class Requirement
             return Result.UNKNOWN;
         }
         double actual = observation.getValue();
-        // Capacity counts and boolean container ownership cannot use fractional or impossible values.
-        if ((fact.startsWith("container.") || fact.endsWith(".usable_slots") || fact.endsWith(".occupied_slots"))
+        // Discrete counts and boolean facts cannot use fractional or impossible values.
+        if ((fact.startsWith("container.") || fact.endsWith(".usable_slots") || fact.endsWith(".occupied_slots")
+                || fact.startsWith("quest.") || fact.equals("account.quest_points") || fact.startsWith("capability."))
                 && actual != Math.rint(actual)
             || (fact.endsWith(".usable_slots") || fact.endsWith(".occupied_slots")) && actual > 28
-            || fact.startsWith("container.") && fact.endsWith(".owned") && actual > 1)
+            || (fact.startsWith("container.") && fact.endsWith(".owned") || fact.startsWith("quest.")
+                || fact.startsWith("capability.")) && actual > 1)
         {
             return Result.UNKNOWN;
         }

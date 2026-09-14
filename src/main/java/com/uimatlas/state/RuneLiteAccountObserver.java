@@ -20,6 +20,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.VarbitID;
+import net.runelite.api.gameval.VarPlayerID;
 
 /** All client reads happen here, on the client thread, after server updates (GameTick). */
 @Slf4j
@@ -135,6 +136,7 @@ public class RuneLiteAccountObserver
             // Quest.getState runs a read-only client script; never call it inside a script event.
             questsDirty = false;
             next.quests(readQuests(now));
+            next.questPoints(readQuestPoints(now));
         }
         if (containersDirty)
         {
@@ -269,6 +271,21 @@ public class RuneLiteAccountObserver
         }
         // No stable event identifies every quest-stage change. Never imply continuous verification.
         return Observation.map(quests, "RuneLite: Quest.getState", now).lastObserved();
+    }
+
+    private Observation<Integer> readQuestPoints(Instant now)
+    {
+        try
+        {
+            int points = client.getVarpValue(VarPlayerID.QP);
+            return points < 0 ? Observation.unknown()
+                : Observation.verified(points, "RuneLite: VarPlayerID.QP", now).lastObserved();
+        }
+        catch (RuntimeException ex)
+        {
+            log.debug("Unable to observe quest points", ex);
+            return Observation.unknown();
+        }
     }
 
     private Observation<LocationState> readLocation(Instant now)
