@@ -38,17 +38,18 @@ public class AccountStateRankingTest
         assertEquals(AVAILABLE, before.getBest().orElseThrow().getEvaluation().getStatus());
         assertEquals(2.8, before.getBest().orElseThrow().getScore().orElseThrow().getTotal(), 0.000001);
         assertEquals(NEEDS_PREP, before.getAlternatives().get(0).getEvaluation().getStatus());
-        assertEquals(a.getPreparation(), before.getAlternatives().get(0).getEvaluation().getMissingPreparation());
-        assertEquals(-2.0, before.getAlternatives().get(0).getScore().orElseThrow().getContributions().get(TRANSITION_COST), 0);
+        assertEquals(a.getSetupItems(), before.getAlternatives().get(0).getEvaluation().getMissingPreparation());
+        assertEquals(-0.5, before.getAlternatives().get(0).getScore().orElseThrow().getContributions().get(TRANSITION_COST), 0);
 
         AccountState changed = initial.toBuilder().inventory(Observation.verified(new ItemContainerState(Map.of(
-            0, new ItemStack(1002, 1), 1, new ItemStack(1001, 1))), "synthetic inventory", NOW)).build();
+            0, new ItemStack(1001, 1))), "synthetic inventory", NOW)).build();
         FactLookup changedFacts = new AccountStateFacts(changed, NOW);
         RankingResult after = ranker.rank(candidates(a, b, changedFacts), changedFacts, NOW);
         assertSame(a, after.getBest().orElseThrow().getEvaluation().getMethod());
         assertEquals(AVAILABLE, after.getBest().orElseThrow().getEvaluation().getStatus());
         assertEquals(2.9, after.getBest().orElseThrow().getScore().orElseThrow().getTotal(), 0.000001);
         assertTrue(after.getBest().orElseThrow().getEvaluation().getMissingPreparation().isEmpty());
+        assertEquals(NEEDS_PREP, after.getAlternatives().get(0).getEvaluation().getStatus());
         assertEquals(0.0, after.getBest().orElseThrow().getScore().orElseThrow().getContributions().get(TRANSITION_COST), 0);
         assertEquals(before, ranker.rank(initialCandidates, initialFacts, NOW));
 
@@ -67,26 +68,27 @@ public class AccountStateRankingTest
 
     private MethodDefinition method(String id, String setupFact)
     {
-        return candidateMethod(id, List.of(requirement("skill.synthetic.level", 5)),
-            List.of(requirement(setupFact, 1)), MethodDefinition.Danger.LOW);
+        MethodDefinition base = candidateMethod(id, List.of(requirement("skill.synthetic.level", 5)),
+            List.of(), MethodDefinition.Danger.LOW);
+        return new MethodDefinition(base.getId(), base.getDisplayName(), base.getCategory(), base.getActivity(),
+            base.getStart(), base.getHardRequirements(), base.getPreparation(), base.getFreeInventorySlots(),
+            List.of(requirement(setupFact, 1)), base.getConsumes(), base.getProduces(), base.getStopConditions(),
+            base.getStyle(), new MethodDefinition.XpRate(id.equals("a") ? 900 : 800, id.equals("a") ? 900 : 800,
+                "Synthetic efficiency comparison only"), base.getCosts(), base.getDanger(), base.getReason());
     }
 
     private List<Candidate> candidates(MethodDefinition a, MethodDefinition b, FactLookup facts)
     {
-        return List.of(candidate(a, 0.9, facts), candidate(b, 0.8, facts));
+        return List.of(candidate(a, facts), candidate(b, facts));
     }
 
-    private Candidate candidate(MethodDefinition method, double efficiency, FactLookup facts)
+    private Candidate candidate(MethodDefinition method, FactLookup facts)
     {
-        // Test-only model: one known setup item eliminates the invented transition cost.
-        // This is not a production normalization policy or advice about either item ID.
-        Requirement setup = method.getPreparation().get(0);
-        Requirement.Result result = setup.evaluate(facts.get(setup.getFact()), NOW);
-        assertNotEquals(Requirement.Result.UNKNOWN, result);
-        boolean ready = result == Requirement.Result.SATISFIED;
-        Map<MethodScorer.Factor, Double> inputs = scoreInputs(efficiency);
-        inputs.put(CURRENT_INVENTORY_FIT, ready ? 1.0 : 0.0);
-        inputs.put(TRANSITION_COST, ready ? 0.0 : 1.0);
+        // Efficiency normalization stays explicitly test-supplied; setup factors are derived.
+        Map<MethodScorer.Factor, Double> inputs = new SetupScoringInputs().derive(method, facts, NOW)
+            .withExplicitFactors(Map.of(GOAL_PROGRESS, 0.0, STORAGE_UNLOCK_VALUE, 0.0,
+                METHOD_EFFICIENCY, method.getXpRate().getMaximum() / 1000, RISK, 0.0, UNCERTAINTY, 0.0))
+            .orElseThrow();
         return new Candidate(method, inputs);
     }
 }
