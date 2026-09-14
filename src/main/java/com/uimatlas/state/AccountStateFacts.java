@@ -15,6 +15,8 @@ public final class AccountStateFacts implements FactLookup
     private static final int INVENTORY_CAPACITY = 28;
     private static final Pattern ITEM_FACT = Pattern.compile(
         "(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.(quantity|usable_slots)");
+    private static final Pattern CAPABILITY_FACT = Pattern.compile(
+        "capability\\.[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+");
 
     private final Map<String, Observation<Double>> facts;
     private final Observation<ItemContainerState> inventory;
@@ -35,6 +37,17 @@ public final class AccountStateFacts implements FactLookup
                 String prefix = "skill." + id.toLowerCase(Locale.ROOT);
                 projected.put(prefix + ".level", derived(skill.getLevel(), skills));
                 projected.put(prefix + ".xp", derived(skill.getExperience(), skills));
+            });
+        }
+        Observation<Map<String, Boolean>> capabilities = observedBy(state.getCapabilities(), asOf);
+        if (capabilities.isKnown())
+        {
+            capabilities.getValue().forEach((id, available) ->
+            {
+                if (CAPABILITY_FACT.matcher(id).matches())
+                {
+                    projected.put(id, derived(available ? 1 : 0, capabilities));
+                }
             });
         }
         // A malformed normalized inventory cannot establish how much usable space remains.

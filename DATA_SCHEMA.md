@@ -84,9 +84,9 @@ The JAR test loads every packaged method resource through the production loader 
 - Attention values are coarse editorial style hints, not measured fractions of active time. Fixed setup/transition minutes and inventory-disruption hints are explicitly neutral/unestimated; zero does not claim zero real cost. Storage-unlock value stays zero: Construction alone earns no arbitrary permanent-storage bonus. No POH/STASH milestone table is introduced.
 - Stops are supply **recheck** boundaries, not claims of total exhaustion: zero loose planks, or fewer than ten loose bricks. Nested materials may still exist. No 1–99 route, fixed goal or automatic completion handling is added.
 
-#### Unsupported required facts
+#### Supported and unsupported required facts
 
-All three methods need `capability.poh.owned`, which `AccountStateFacts` does not supply. Limestone additionally needs these facts; all remain UNKNOWN with the current adapter:
+All three methods need `capability.poh.owned`. A positive logged-in RuneLite server house-location varbit now supplies verified ownership through `AccountState` and `AccountStateFacts`. Zero is not documented by RuneLite as a trustworthy non-ownership value, so it remains UNKNOWN rather than becoming false. Limestone additionally needs these facts; all remain UNKNOWN with the current adapter:
 
 | Fact | Role / meaning |
 | --- | --- |
@@ -167,6 +167,7 @@ IDs are case-sensitive and stable:
 | `inventory.item.<itemId>.quantity` | Sum of quantities for that exact item ID in inventory |
 | `equipment.item.<itemId>.quantity` | Sum of quantities for that exact item ID in equipment |
 | `carried.item.<itemId>.quantity` | Inventory plus equipment quantity, requiring both observations |
+| `capability.poh.owned` | 1 only from verified POH ownership; 0 only if a future provider can verify absence; missing/unavailable state is unknown |
 
 `<skill>` is the normalized account skill key lowercased with `Locale.ROOT`, for example `CONSTRUCTION` becomes `construction`. No per-skill mappings or RuneLite enums are introduced. Missing skills are unknown; there is no default level or XP. The observer already excludes the aggregate skill. `<itemId>` is a canonical nonnegative decimal Java integer (`0` through `2147483647`, no sign or leading zeroes except `0` itself), matching the normalized item model. IDs work generically without asserting that an ID exists in the game. Exact IDs remain distinct, including noted/unnoted and other variants; no equivalence or nested-container content is inferred. Malformed or unsupported IDs return unknown.
 
@@ -178,7 +179,11 @@ Carried quantities require complete inventory **and** equipment observations, ev
 
 Confidence is not a freshness exemption: preserved `VERIFIED_NOW` observations can expire. The evaluator rejects facts exceeding a predicate's age limit and accepts `LAST_OBSERVED` only when explicitly permitted. Historical free-slot values and historical absent-item zeroes keep their historical confidence; they do not assert current free space or absence. The cutoff does not impose a global maximum age or renew stale observations.
 
-No account-mode, quest, storage, POH, STASH, looting-bag, deathbank or integration facts are exposed. Partial account readiness does not suppress independently observed supported sections. The adapter relies on normalized snapshot/reset behavior at the observation boundary. Pure-domain tests cover these semantics and a synthetic method becoming `AVAILABLE`, `BLOCKED` when real level falls, and `UNKNOWN` when required inventory state disappears. Production method loading and scoring weights are unchanged.
+Capability values are held in a generic `Observation<Map<String, Boolean>>` keyed by complete stable `capability.*` fact IDs. `AccountStateFacts` accepts only lowercase multi-segment capability IDs and maps verified booleans to numeric 1/0 without changing their source, confidence or timestamp. A missing key is unknown, including when another capability was observed. Historical, future and expired capability observations follow the same `Requirement` rules as every other fact.
+
+The live `RuneLiteAccountObserver` currently provides only verified `capability.poh.owned = 1`, using a positive result from `Client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION)` while logged in with an available account boundary. RuneLite supplies a named house-location varbit but no documented ownership enum or verified-zero contract, so zero, negative values and read failures are UNKNOWN. The observer does not fabricate false or persist a last-observed value. Every logged-in game tick replaces the capability observation; all existing logout, hop, reconnect, profile and account-switch resets clear it. The exact API sources are the [RuneLite 1.12.38 generated varbit constants](https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/VarbitID.java) and [Client server-varbit API](https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/Client.java).
+
+No account-mode, quest, other storage, POH room/furniture, STASH, looting-bag, deathbank or integration facts are exposed. Partial account readiness does not suppress independently observed supported sections. The adapter relies on normalized snapshot/reset behavior at the observation boundary. Pure-domain tests cover these semantics and a synthetic method becoming `AVAILABLE`, `BLOCKED` when real level falls, and `UNKNOWN` when required inventory state disappears. Production method loading, capacity semantics and scoring weights are unchanged.
 
 ### Scoring scaffold contract
 

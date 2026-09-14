@@ -25,6 +25,8 @@ import net.runelite.api.gameval.VarbitID;
 @Singleton
 public class RuneLiteAccountObserver
 {
+    private static final String POH_OWNED = "capability.poh.owned";
+
     private final Client client;
     private final AccountStateService states;
     private boolean skillsDirty = true;
@@ -88,6 +90,7 @@ public class RuneLiteAccountObserver
         AccountMode mode = AccountMode.fromId(client.getVarbitValue(VarbitID.IRONMAN));
         next.accountMode(mode == AccountMode.UNKNOWN ? Observation.unknown()
             : Observation.verified(mode, "RuneLite: account-mode varbit", now));
+        next.capabilities(readCapabilities(now));
 
         if (skillsDirty)
         {
@@ -115,6 +118,26 @@ public class RuneLiteAccountObserver
         }
         next.location(readLocation(now));
         states.publish(next.build());
+    }
+
+    private Observation<Map<String, Boolean>> readCapabilities(Instant now)
+    {
+        try
+        {
+            int houseLocation = client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION);
+            if (houseLocation <= 0)
+            {
+                // RuneLite names the positive location signal, but does not document zero as verified non-ownership.
+                return Observation.unknown();
+            }
+            return Observation.map(Map.of(POH_OWNED, true),
+                "RuneLite: server varbit POH_HOUSE_LOCATION", now);
+        }
+        catch (RuntimeException ex)
+        {
+            log.debug("Unable to observe player-owned house location", ex);
+            return Observation.unknown();
+        }
     }
 
     // RuneLite still includes the deprecated aggregate in values(); it must not count as a skill.

@@ -18,6 +18,8 @@ public class AccountState
     @Builder.Default
     Observation<Map<Integer, QuestStatus>> quests = Observation.unknown();
     @Builder.Default
+    Observation<Map<String, Boolean>> capabilities = Observation.unknown();
+    @Builder.Default
     Observation<ItemContainerState> inventory = Observation.unknown();
     @Builder.Default
     Observation<ItemContainerState> equipment = Observation.unknown();

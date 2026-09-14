@@ -121,7 +121,7 @@
           "fact": "capability.poh.owned",
           "comparison": "AT_LEAST",
           "target": 1,
-          "description": "Own a player-owned house. Currently unsupported by AccountStateFacts; verify before eligibility.",
+          "description": "Own a player-owned house; current verified ownership is required for eligibility.",
           "allowLastObserved": false,
           "maxAgeSeconds": 300,
           "safetyRelevant": false
@@ -393,7 +393,7 @@
           "fact": "capability.poh.owned",
           "comparison": "AT_LEAST",
           "target": 1,
-          "description": "Own a player-owned house. Currently unsupported by AccountStateFacts; verify before eligibility.",
+          "description": "Own a player-owned house; current verified ownership is required for eligibility.",
           "allowLastObserved": false,
           "maxAgeSeconds": 300,
           "safetyRelevant": false
@@ -688,7 +688,7 @@
           "fact": "capability.poh.owned",
           "comparison": "AT_LEAST",
           "target": 1,
-          "description": "Own a player-owned house; currently unsupported.",
+          "description": "Own a player-owned house; current verified ownership is required.",
           "allowLastObserved": false,
           "maxAgeSeconds": 300,
           "safetyRelevant": false

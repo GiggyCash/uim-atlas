@@ -33,12 +33,37 @@ public class AccountStateFactsTest
     }
 
     @Test
+    public void capabilityFactsPreserveBooleanValueProvenanceAndFreshness()
+    {
+        Observation<Map<String, Boolean>> capabilities = Observation.map(Map.of(
+            "capability.poh.owned", true,
+            "capability.example.absent", false,
+            "invalid", true), "trusted capability source", NOW.minusSeconds(10));
+        FactLookup facts = new AccountStateFacts(AccountState.builder().capabilities(capabilities).build(), NOW);
+        assertEquals(derived(1, capabilities), facts.get("capability.poh.owned"));
+        assertEquals(derived(0, capabilities), facts.get("capability.example.absent"));
+        assertUnknown(facts.get("invalid"));
+        Requirement owned = requirement("capability.poh.owned", 1, false);
+        assertEquals(Requirement.Result.SATISFIED, owned.evaluate(facts.get(owned.getFact()), NOW));
+        assertEquals(Requirement.Result.UNKNOWN, owned.evaluate(facts.get(owned.getFact()), NOW.plusSeconds(51)));
+
+        FactLookup historical = new AccountStateFacts(AccountState.builder()
+            .capabilities(capabilities.lastObserved()).build(), NOW);
+        assertEquals(derived(1, capabilities).lastObserved(), historical.get("capability.poh.owned"));
+        assertEquals(Requirement.Result.UNKNOWN,
+            owned.evaluate(historical.get("capability.poh.owned"), NOW));
+        assertUnknown(new AccountStateFacts(AccountState.builder().capabilities(Observation.map(
+            Map.of("capability.poh.owned", true), "future capability", NOW.plusSeconds(1))).build(), NOW)
+            .get("capability.poh.owned"));
+    }
+
+    @Test
     public void unknownSectionsNeverBecomeZeroOrFreeSpace()
     {
         FactLookup facts = new AccountStateFacts(AccountState.empty(), NOW);
         for (String id : List.of("skill.construction.level", "skill.construction.xp",
             "inventory.occupied_slots", "inventory.free_slots", "inventory.item.1234.quantity",
-            "equipment.item.1234.quantity", "carried.item.1234.quantity"))
+            "equipment.item.1234.quantity", "carried.item.1234.quantity", "capability.poh.owned"))
         {
             assertUnknown(facts.get(id));
         }

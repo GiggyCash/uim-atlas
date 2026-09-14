@@ -34,6 +34,7 @@ public class RuneLiteAccountObserverTest
         when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
         when(client.getAccountHash()).thenReturn(123L);
         when(client.getVarbitValue(VarbitID.IRONMAN)).thenReturn(2);
+        when(client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION)).thenReturn(1);
         when(client.getRealSkillLevel(any(Skill.class))).thenReturn(10);
         when(client.getBoostedSkillLevel(any(Skill.class))).thenReturn(12);
         when(client.getSkillExperience(any(Skill.class))).thenReturn(1154);
@@ -71,6 +72,10 @@ public class RuneLiteAccountObserverTest
         assertTrue(state.getLocation().getValue().getWorldTypes().contains("MEMBERS"));
         assertEquals(QuestStatus.FINISHED, state.getQuests().getValue().get(Quest.values()[0].getId()));
         assertEquals(Observation.Confidence.LAST_OBSERVED, state.getQuests().getConfidence());
+        assertEquals(Boolean.TRUE, state.getCapabilities().getValue().get("capability.poh.owned"));
+        assertEquals(Observation.Confidence.VERIFIED_NOW, state.getCapabilities().getConfidence());
+        assertEquals("RuneLite: server varbit POH_HOUSE_LOCATION", state.getCapabilities().getSource());
+        assertNotNull(state.getCapabilities().getObservedAt());
     }
 
     @Test
@@ -124,12 +129,15 @@ public class RuneLiteAccountObserverTest
     public void accountSwitchAndLogoutDiscardPreviousState()
     {
         observer.refresh();
+        assertTrue(states.getSnapshot().getCapabilities().isKnown());
         when(client.getAccountHash()).thenReturn(456L);
         when(client.getVarbitValue(VarbitID.IRONMAN)).thenReturn(0);
+        when(client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION)).thenReturn(0);
         when(client.getItemContainer(InventoryID.INV)).thenReturn(null);
         observer.refresh();
         assertFalse(states.getSnapshot().isUltimateIronman());
         assertFalse(states.getSnapshot().getInventory().isKnown());
+        assertFalse(states.getSnapshot().getCapabilities().isKnown());
         when(client.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
         observer.refresh();
         assertEquals(AccountState.empty(), states.getSnapshot());
@@ -163,5 +171,20 @@ public class RuneLiteAccountObserverTest
         assertFalse(states.getSnapshot().getAccountMode().isKnown());
         assertFalse(states.getSnapshot().getLocation().isKnown());
         assertEquals("Partial", AccountSummary.from(states.getSnapshot()).getStatus());
+    }
+
+    @Test
+    public void zeroInvalidAndUnavailableHouseLocationRemainUnknown()
+    {
+        for (int location : new int[]{0, -1})
+        {
+            when(client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION)).thenReturn(location);
+            observer.refresh();
+            assertFalse(states.getSnapshot().getCapabilities().isKnown());
+        }
+        when(client.getServerVarbitValue(VarbitID.POH_HOUSE_LOCATION))
+            .thenThrow(new IllegalStateException("varbit unavailable"));
+        observer.refresh();
+        assertFalse(states.getSnapshot().getCapabilities().isKnown());
     }
 }

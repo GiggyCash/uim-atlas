@@ -76,7 +76,7 @@ public class ProductionConstructionCatalogTest
     }
 
     @Test
-    public void realAccountLevelsGateEveryProductionMethodAndUnsupportedHouseStaysUnknown() throws Exception
+    public void realAccountLevelsGateEveryProductionMethodAndUnobservedHouseStaysUnknown() throws Exception
     {
         for (MethodDefinition method : load())
         {
@@ -93,6 +93,40 @@ public class ProductionConstructionCatalogTest
                 assertEquals(real < minimum ? BLOCKED : UNKNOWN, evaluation.getStatus());
                 assertTrue(evaluation.getUnknownRequirements().stream().anyMatch(r -> r.getFact().equals("capability.poh.owned")));
             }
+        }
+    }
+
+    @Test
+    public void verifiedPohCapabilityFlowsFromAccountStateIntoProductionEvaluation() throws Exception
+    {
+        MethodDefinition novice = load().get(0);
+        AccountState state = AccountState.builder().loggedIn(true)
+            .skills(Observation.map(Map.of("CONSTRUCTION", new SkillState(20, 20, 4470)),
+                "observed skills", NOW))
+            .capabilities(Observation.map(Map.of("capability.poh.owned", true),
+                "RuneLite: server varbit POH_HOUSE_LOCATION", NOW))
+            .inventory(Observation.verified(new ItemContainerState(Map.of(
+                0, new ItemStack(2347, 1),
+                1, new ItemStack(8794, 1),
+                2, new ItemStack(2353, 1),
+                3, new ItemStack(8778, 1))), "observed inventory", NOW))
+            .build();
+        AccountStateFacts facts = new AccountStateFacts(state, NOW);
+        Observation<Double> poh = facts.get("capability.poh.owned");
+        assertEquals(1.0, poh.getValue(), 0);
+        assertEquals("RuneLite: server varbit POH_HOUSE_LOCATION", poh.getSource());
+        assertEquals(Observation.Confidence.VERIFIED_NOW, poh.getConfidence());
+        assertEquals(24.0, facts.get("inventory.free_slots").getValue(), 0);
+        assertEquals(1.0, facts.get("inventory.item.8778.quantity").getValue(), 0);
+        assertEquals(25.0, facts.get("inventory.item.8778.usable_slots").getValue(), 0);
+        assertEquals(AVAILABLE, new MethodEvaluator().evaluate(novice, facts, NOW).getStatus());
+        assertEquals(UNKNOWN, new MethodEvaluator().evaluate(novice, facts, NOW.plusSeconds(301)).getStatus());
+
+        for (MethodDefinition method : load())
+        {
+            Requirement requirement = method.getHardRequirements().stream()
+                .filter(r -> r.getFact().equals("capability.poh.owned")).findFirst().orElseThrow();
+            assertEquals(Requirement.Result.SATISFIED, requirement.evaluate(poh, NOW));
         }
     }
 
