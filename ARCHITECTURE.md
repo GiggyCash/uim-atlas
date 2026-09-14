@@ -116,6 +116,20 @@ Storage value, risk and uncertainty remain explicit caller inputs. Goal context 
 
 Quest states use the pinned RuneLite `Quest.getState(Client)` semantic API, including RFD chapter and miniquest enum entries. `AccountStateFacts` projects known states as `quest.<id>.complete` and `quest.<id>.started`; UNKNOWN entries are omitted rather than converted to zero. Both inherit the quest snapshot's `LAST_OBSERVED` confidence and timestamp. Quest points use `Client.getVarpValue(VarPlayerID.QP)`, matching RuneLite's built-in achievement-diary requirement, and are captured with the quest refresh as `LAST_OBSERVED`. Login, logout, hop, profile and account-hash reset behavior is inherited from the session-only snapshot, with no account identifier persisted.
 
+### Strategic actions
+
+`StrategicDecision` composes one already-evaluated `GoalContext.Result`, including its original `RecommendationDecision.Result`. `StrategicAction` exposes only ID, kind and readiness. A method wrapper retains the full method result and matched goal requirements. `QuestAction` retains the evaluated milestone, dependency states, prerequisite diagnostics and a manual handoff descriptor. There is no parallel quest evaluator, inheritance rewrite, RuneLite dependency or live call site.
+
+Only unfinished quest-completion milestones in the selected goal graph enter quest consideration. The evaluator's `AVAILABLE` frontier supplies ready handoffs. Pending stages outside that frontier remain blocked/unknown diagnostics with their dependency states; an arbitrary quest prerequisite or other coverage gap is not turned into a new quest action. Complete milestones and complete goals produce no quest candidates. A capability-completion milestone cannot masquerade as a quest.
+
+Quest `READY_TO_HANDOFF` means the milestone's strategic prerequisites and dependencies are verified under their existing freshness policies. It means strategically appropriate to begin, not fully equipped to finish. Unknown own completion, prerequisite quests, Quest points, skills or required combat capabilities prevent actionable handoff. Aggregate late-goal targets do not become new gates on independent earlier chapters. All original goal gaps remain available, including unknown no-Prayer combat and unsupported skill coverage. A quest-completion gap in the method-only context can now have a corresponding strategic quest candidate; the underlying diagnostic is preserved rather than silently rewritten.
+
+Method actionability is delegated unchanged: `ACTIONABLE` maps to `READY`, `ACTIONABLE_WITH_PREP` to `READY_WITH_PREP`, and unproven preparation remains `UNRESOLVED`. Neither score nor goal relevance bypasses that gate. Quest readiness never approves inventory disposal, death storage, acquisition, item movement or combat tactics. Full quest preflight and a deterministic SafetyService remain separate future work.
+
+The comparison uses only shared factors and the existing centralized `MethodScorer` weights/arithmetic. Method signed contributions are projected without changing the original nine-factor score. Quests require explicit normalized setup, transition, disruption, risk and uncertainty inputs for beginning the handoff; absent inputs are listed and leave the candidate unscored. No quest XP, efficiency or storage reward is invented. The formula and exact tie rule are documented in `DATA_SCHEMA.md`.
+
+Results retain all scored and unscored candidates, the optional best actionable result, and the complete original context. A higher-scoring unresolved method remains visible when a ready quest wins. Strategic ordering may differ from method-only ordering because it deliberately compares a smaller factor set. Results are snapshot decisions at the original evaluation instant, not durable authorization: callers must recreate the entire context after account resets or relevant state changes. No state is persisted.
+
 ### 1. Account state
 
 Purpose: normalize observable RuneLite/game state into a stable model used by the rest of the plugin.
@@ -419,12 +433,15 @@ Preferred use:
 
 ### Quest Helper
 
-Initial boundary:
+Reviewed 2026-09-14: the directly fetched [Plugin Hub marker](https://raw.githubusercontent.com/runelite/plugin-hub/master/plugins/quest-helper) and Quest Helper master both resolved to `a52646118f0e5ea63a6b3331cefa98087a7b4d6c` (build version 4.17.1). The source audit found no documented supported external start/open-helper contract, no incoming `PluginMessage` handler, and no separate published integration API in the repository. This is a finding about that reviewed revision, not a guarantee about future releases.
 
-- UIM Atlas chooses and prepares the quest
-- Quest Helper handles quest execution
+RuneLite does provide [PluginMessage](https://static.runelite.net/runelite-client/apidocs/net/runelite/client/events/PluginMessage.html) for inter-plugin data, but a transport alone is not a receiving contract. Quest Helper's [DetailedQuestStep](https://github.com/Zoinkwiz/quest-helper/blob/a52646118f0e5ea63a6b3331cefa98087a7b4d6c/src/main/java/com/questhelper/steps/DetailedQuestStep.java) and [QuestRequirementsPanel](https://github.com/Zoinkwiz/quest-helper/blob/a52646118f0e5ea63a6b3331cefa98087a7b4d6c/src/main/java/com/questhelper/panel/QuestRequirementsPanel.java) send outgoing messages to Shortest Path and Not Enough Runes. They do not accept requests to start a quest.
 
-Do not depend on an unmerged or unofficial API. If a stable handoff API becomes available later, implement it as an optional adapter.
+[QuestManager.startUpQuest](https://github.com/Zoinkwiz/quest-helper/blob/a52646118f0e5ea63a6b3331cefa98087a7b4d6c/src/main/java/com/questhelper/managers/QuestManager.java) and [QuestMenuHandler](https://github.com/Zoinkwiz/quest-helper/blob/a52646118f0e5ea63a6b3331cefa98087a7b4d6c/src/main/java/com/questhelper/managers/QuestMenuHandler.java) contain public implementation methods tied to Quest Helper's internal objects and UI state. Java visibility does not establish a supported Plugin Hub dependency API. UIM Atlas neither imports nor invokes them.
+
+The implemented descriptor contains the RuneLite quest ID already validated in goal data, the milestone display name, target `QUEST_HELPER`, and availability `MANUAL_ONLY`. It is not a Quest Helper enum mapping or a plugin-presence assertion. The player can manually select the quest as described in [Quest Helper's README](https://github.com/Zoinkwiz/quest-helper/blob/a52646118f0e5ea63a6b3331cefa98087a7b4d6c/README.md). No opening, installation or execution occurs. Absence of Quest Helper does not affect planning. Re-review upstream before adding an optional automatic adapter.
+
+Compatibility review: this milestone adds no third-party dependency, reflection, runtime downloads, network calls, configuration writes, synthetic game events or gameplay automation. Resources remain bundled and loaded as streams, consistent with [Plugin Hub guidance](https://github.com/runelite/plugin-hub#plugin-resources). Plugin Hub's own review remains required before publication.
 
 ### RuneLite native features
 

@@ -3,6 +3,7 @@ package com.uimatlas.recommendation;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Value;
 
 /** Weighted sum of explicit, normalized [0,1] inputs. Placeholder weights, not game balance. */
@@ -31,6 +32,14 @@ public final class MethodScorer
         {
             this.contributions = Map.copyOf(contributions);
             this.total = contributions.values().stream().mapToDouble(Double::doubleValue).sum();
+        }
+
+        /** Preserve signed contributions when comparing only factors shared by action families. */
+        Score selectFactors(Set<Factor> factors)
+        {
+            Map<Factor, Double> selected = new EnumMap<>(Factor.class);
+            factors.forEach(factor -> selected.put(factor, contributions.get(factor)));
+            return new Score(selected);
         }
     }
 
@@ -73,18 +82,26 @@ public final class MethodScorer
             return Optional.empty();
         }
         requireComplete(inputs);
+        Score base = weightedScore(inputs, weights);
+        Map<Factor, Double> contributions = new EnumMap<>(base.getContributions());
+        contributions.put(Factor.RISK, weights.get(Factor.RISK)
+            * Math.max(inputs.get(Factor.RISK), evaluation.getMethod().getDanger().getRiskFloor()));
+        return Optional.of(new Score(contributions));
+    }
+
+    /** Shared arithmetic only: callers own applicability, required factors and risk policy. */
+    static Score weightedScore(Map<Factor, Double> inputs, Map<Factor, Double> weights)
+    {
         Map<Factor, Double> contributions = new EnumMap<>(Factor.class);
         inputs.forEach((factor, value) ->
         {
-            if (!Double.isFinite(value) || value < 0 || value > 1)
+            if (value == null || !Double.isFinite(value) || value < 0 || value > 1)
             {
                 throw new IllegalArgumentException("Expected normalized [0,1] input for " + factor);
             }
-            double effective = factor == Factor.RISK
-                ? Math.max(value, evaluation.getMethod().getDanger().getRiskFloor()) : value;
-            contributions.put(factor, weights.get(factor) * effective);
+            contributions.put(factor, weights.get(factor) * value);
         });
-        return Optional.of(new Score(contributions));
+        return new Score(contributions);
     }
 
     private static void requireComplete(Map<Factor, Double> values)
