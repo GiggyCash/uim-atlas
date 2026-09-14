@@ -1,6 +1,7 @@
 package com.uimatlas.state;
 
 import com.uimatlas.ui.AccountSummary;
+import java.time.Instant;
 import java.util.EnumSet;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
@@ -14,6 +15,7 @@ import net.runelite.api.WorldType;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.VarbitID;
 import org.junit.Before;
 import org.junit.Test;
@@ -186,5 +188,52 @@ public class RuneLiteAccountObserverTest
             .thenThrow(new IllegalStateException("varbit unavailable"));
         observer.refresh();
         assertFalse(states.getSnapshot().getCapabilities().isKnown());
+    }
+
+    @Test
+    public void carriedPlankSackPublishesValidatedTypedContentsAndCapacity()
+    {
+        when(inventory.getItems()).thenReturn(new Item[]{new Item(ItemID.PLANK_SACK, 1)});
+        when(client.getServerVarbitValue(VarbitID.PLANK_SACK_OAK)).thenReturn(20);
+        when(client.getServerVarbitValue(VarbitID.PLANK_SACK_TEAK)).thenReturn(8);
+        observer.refresh();
+
+        ContainerState sack = states.getSnapshot().getContainers().get("plank_sack");
+        assertEquals(Boolean.TRUE, sack.getOwned().getValue());
+        assertEquals(20, sack.getContents().getValue().get(ItemID.PLANK_OAK).intValue());
+        assertEquals(8, sack.getContents().getValue().get(ItemID.PLANK_TEAK).intValue());
+        assertEquals(0, sack.getFreeCapacity().getValue().intValue());
+        AccountStateFacts facts = new AccountStateFacts(states.getSnapshot(), Instant.now());
+        assertEquals(20.0, facts.get("container.plank_sack.contents.8778.quantity").getValue(), 0);
+        assertEquals("RuneLite: server plank-sack content varbits",
+            facts.get("container.plank_sack.contents.8778.quantity").getSource());
+        assertEquals(Observation.Confidence.VERIFIED_NOW,
+            facts.get("container.plank_sack.contents.8778.quantity").getConfidence());
+    }
+
+    @Test
+    public void absentFailedAndInvalidPlankSackStateStayUnknownAndReset()
+    {
+        observer.refresh();
+        assertFalse(states.getSnapshot().getContainers().get("plank_sack").getOwned().isKnown());
+
+        when(inventory.getItems()).thenReturn(new Item[]{new Item(ItemID.PLANK_SACK, 1)});
+        when(client.getServerVarbitValue(VarbitID.PLANK_SACK_OAK)).thenReturn(29);
+        observer.containerChanged(InventoryID.INV);
+        observer.refresh();
+        ContainerState invalid = states.getSnapshot().getContainers().get("plank_sack");
+        assertTrue(invalid.getOwned().isKnown());
+        assertFalse(invalid.getContents().isKnown());
+        assertFalse(invalid.getFreeCapacity().isKnown());
+
+        when(client.getAccountHash()).thenReturn(456L);
+        when(client.getItemContainer(InventoryID.INV)).thenReturn(null);
+        observer.refresh();
+        assertFalse(states.getSnapshot().getContainers().get("plank_sack").getOwned().isKnown());
+        assertFalse(new AccountStateFacts(states.getSnapshot(), Instant.now())
+            .get("container.plank_sack.contents.8778.quantity").isKnown());
+        when(client.getGameState()).thenReturn(GameState.LOGIN_SCREEN);
+        observer.refresh();
+        assertTrue(states.getSnapshot().getContainers().isEmpty());
     }
 }

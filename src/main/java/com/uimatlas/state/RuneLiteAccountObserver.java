@@ -18,6 +18,7 @@ import net.runelite.api.Skill;
 import net.runelite.api.WorldView;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.gameval.VarbitID;
 
 /** All client reads happen here, on the client thread, after server updates (GameTick). */
@@ -26,6 +27,16 @@ import net.runelite.api.gameval.VarbitID;
 public class RuneLiteAccountObserver
 {
     private static final String POH_OWNED = "capability.poh.owned";
+    private static final String PLANK_SACK = "plank_sack";
+    private static final int PLANK_SACK_CAPACITY = 28;
+    private static final Map<Integer, Integer> PLANK_SACK_CONTENTS = Map.of(
+        ItemID.WOODPLANK, VarbitID.PLANK_SACK_PLAIN,
+        ItemID.PLANK_OAK, VarbitID.PLANK_SACK_OAK,
+        ItemID.PLANK_TEAK, VarbitID.PLANK_SACK_TEAK,
+        ItemID.PLANK_MAHOGANY, VarbitID.PLANK_SACK_MAHOGANY,
+        ItemID.PLANK_CAMPHOR, VarbitID.PLANK_SACK_CAMPHOR,
+        ItemID.PLANK_IRONWOOD, VarbitID.PLANK_SACK_IRONWOOD,
+        ItemID.PLANK_ROSEWOOD, VarbitID.PLANK_SACK_ROSEWOOD);
 
     private final Client client;
     private final AccountStateService states;
@@ -33,6 +44,7 @@ public class RuneLiteAccountObserver
     private boolean inventoryDirty = true;
     private boolean equipmentDirty = true;
     private boolean questsDirty = true;
+    private boolean containersDirty = true;
     private long accountHash = -1;
 
     @Inject
@@ -46,7 +58,7 @@ public class RuneLiteAccountObserver
     {
         states.reset();
         accountHash = -1;
-        skillsDirty = inventoryDirty = equipmentDirty = questsDirty = true;
+        skillsDirty = inventoryDirty = equipmentDirty = questsDirty = containersDirty = true;
     }
 
     public void skillsChanged()
@@ -58,6 +70,12 @@ public class RuneLiteAccountObserver
     {
         inventoryDirty |= id == InventoryID.INV;
         equipmentDirty |= id == InventoryID.WORN;
+        containersDirty |= id == InventoryID.INV;
+    }
+
+    public void varbitChanged(int id)
+    {
+        containersDirty |= PLANK_SACK_CONTENTS.containsValue(id);
     }
 
     public void questsChanged()
@@ -87,6 +105,7 @@ public class RuneLiteAccountObserver
         Instant now = Instant.now();
         AccountState previous = states.getSnapshot();
         AccountState.AccountStateBuilder next = previous.toBuilder().loggedIn(true);
+        Observation<ItemContainerState> inventory = previous.getInventory();
         AccountMode mode = AccountMode.fromId(client.getVarbitValue(VarbitID.IRONMAN));
         next.accountMode(mode == AccountMode.UNKNOWN ? Observation.unknown()
             : Observation.verified(mode, "RuneLite: account-mode varbit", now));
@@ -100,9 +119,10 @@ public class RuneLiteAccountObserver
         }
         if (inventoryDirty)
         {
-            Observation<ItemContainerState> inventory = readContainer(InventoryID.INV, now);
+            inventory = readContainer(InventoryID.INV, now);
             next.inventory(inventory);
             inventoryDirty = !inventory.isKnown();
+            containersDirty = true;
         }
         if (equipmentDirty)
         {
@@ -116,8 +136,57 @@ public class RuneLiteAccountObserver
             questsDirty = false;
             next.quests(readQuests(now));
         }
+        if (containersDirty)
+        {
+            Map<String, ContainerState> containers = readContainers(inventory, now);
+            next.containers(containers);
+            ContainerState sack = containers.get(PLANK_SACK);
+            containersDirty = sack.getOwned().isKnown() && !sack.getContents().isKnown();
+        }
         next.location(readLocation(now));
         states.publish(next.build());
+    }
+
+    private Map<String, ContainerState> readContainers(Observation<ItemContainerState> inventory, Instant now)
+    {
+        if (!inventory.isKnown() || inventory.getValue().getSlots().values().stream()
+            .noneMatch(item -> item.getItemId() == ItemID.PLANK_SACK))
+        {
+            // Inventory absence proves only "not currently carried", never global non-ownership.
+            return Map.of(PLANK_SACK, ContainerState.unknown());
+        }
+        Observation<Boolean> owned = Observation.verified(true, inventory.getSource(), inventory.getObservedAt());
+        try
+        {
+            Map<Integer, Integer> contents = new HashMap<>();
+            int total = 0;
+            for (Map.Entry<Integer, Integer> entry : PLANK_SACK_CONTENTS.entrySet())
+            {
+                int quantity = client.getServerVarbitValue(entry.getValue());
+                if (quantity < 0 || quantity > PLANK_SACK_CAPACITY)
+                {
+                    return Map.of(PLANK_SACK, new ContainerState(owned,
+                        Observation.unknown(), Observation.unknown()));
+                }
+                contents.put(entry.getKey(), quantity);
+                total += quantity;
+            }
+            if (total > PLANK_SACK_CAPACITY)
+            {
+                return Map.of(PLANK_SACK, new ContainerState(owned,
+                    Observation.unknown(), Observation.unknown()));
+            }
+            String source = "RuneLite: server plank-sack content varbits";
+            return Map.of(PLANK_SACK, new ContainerState(owned,
+                Observation.map(contents, source, now),
+                Observation.verified(PLANK_SACK_CAPACITY - total, source, now)));
+        }
+        catch (RuntimeException ex)
+        {
+            log.debug("Unable to observe carried plank sack contents", ex);
+            return Map.of(PLANK_SACK, new ContainerState(owned,
+                Observation.unknown(), Observation.unknown()));
+        }
     }
 
     private Observation<Map<String, Boolean>> readCapabilities(Instant now)

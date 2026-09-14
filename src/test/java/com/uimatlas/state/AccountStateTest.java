@@ -75,12 +75,15 @@ public class AccountStateTest
         AccountState old = AccountState.builder().loggedIn(true)
             .accountMode(Observation.verified(AccountMode.ULTIMATE_IRONMAN, "test", TIME))
             .capabilities(Observation.map(Map.of("capability.poh.owned", true), "test", TIME))
+            .container("plank_sack", new ContainerState(Observation.verified(true, "test", TIME),
+                Observation.map(Map.of(8778, 28), "test", TIME), Observation.verified(0, "test", TIME)))
             .inventory(Observation.verified(new ItemContainerState(Map.of()), "test", TIME)).build();
         service.publish(old);
         service.reset();
         assertEquals(AccountState.empty(), service.getSnapshot());
         assertTrue(old.isUltimateIronman());
         assertTrue(old.getCapabilities().isKnown());
+        assertTrue(old.getContainers().get("plank_sack").getContents().isKnown());
         assertEquals("0 / 28", AccountSummary.from(old).getInventory());
         assertEquals("Partial", AccountSummary.from(old).getStatus());
     }

@@ -17,6 +17,7 @@ public final class AccountStateFacts implements FactLookup
         "(inventory|equipment|carried)\\.item\\.(0|[1-9][0-9]*)\\.(quantity|usable_slots)");
     private static final Pattern CAPABILITY_FACT = Pattern.compile(
         "capability\\.[a-z][a-z0-9_]*(?:\\.[a-z][a-z0-9_]*)+");
+    private static final Pattern CONTAINER_ID = Pattern.compile("[a-z][a-z0-9_]*");
 
     private final Map<String, Observation<Double>> facts;
     private final Observation<ItemContainerState> inventory;
@@ -50,6 +51,30 @@ public final class AccountStateFacts implements FactLookup
                 }
             });
         }
+        state.getContainers().forEach((id, container) ->
+        {
+            if (!CONTAINER_ID.matcher(id).matches())
+            {
+                return;
+            }
+            String prefix = "container." + id;
+            Observation<Boolean> owned = observedBy(container.getOwned(), asOf);
+            if (owned.isKnown())
+            {
+                projected.put(prefix + ".owned", derived(owned.getValue() ? 1 : 0, owned));
+            }
+            Observation<Map<Integer, Integer>> contents = observedBy(container.getContents(), asOf);
+            if (contents.isKnown())
+            {
+                contents.getValue().forEach((itemId, quantity) -> projected.put(
+                    prefix + ".contents." + itemId + ".quantity", derived(quantity, contents)));
+            }
+            Observation<Integer> freeCapacity = observedBy(container.getFreeCapacity(), asOf);
+            if (freeCapacity.isKnown())
+            {
+                projected.put(prefix + ".free_capacity", derived(freeCapacity.getValue(), freeCapacity));
+            }
+        });
         // A malformed normalized inventory cannot establish how much usable space remains.
         if (inventory.isKnown() && inventory.getValue().getSlots().keySet().stream()
             .allMatch(slot -> slot < INVENTORY_CAPACITY))

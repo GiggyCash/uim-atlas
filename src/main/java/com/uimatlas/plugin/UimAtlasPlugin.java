@@ -14,6 +14,7 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -110,6 +111,12 @@ public class UimAtlasPlugin extends Plugin
     public void onItemContainerChanged(ItemContainerChanged event)
     {
         observer.containerChanged(event.getContainerId());
+    }
+
+    @Subscribe
+    public void onVarbitChanged(VarbitChanged event)
+    {
+        observer.varbitChanged(event.getVarbitId());
     }
 
     @Subscribe

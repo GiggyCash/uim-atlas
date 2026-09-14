@@ -3,6 +3,7 @@ package com.uimatlas.state;
 import java.util.Map;
 import java.util.OptionalInt;
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 
 /** Session-only snapshot. There are deliberately no RuneLite objects in this model. */
@@ -19,6 +20,8 @@ public class AccountState
     Observation<Map<Integer, QuestStatus>> quests = Observation.unknown();
     @Builder.Default
     Observation<Map<String, Boolean>> capabilities = Observation.unknown();
+    @Singular("container")
+    Map<String, ContainerState> containers;
     @Builder.Default
     Observation<ItemContainerState> inventory = Observation.unknown();
     @Builder.Default

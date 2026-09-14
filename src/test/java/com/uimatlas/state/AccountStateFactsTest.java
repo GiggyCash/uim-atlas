@@ -283,6 +283,38 @@ public class AccountStateFactsTest
             .build(), NOW).get(need.getFact()).getValue(), 0);
     }
 
+    @Test
+    public void genericContainerFactsPreserveIndependentProvenanceAndUnknowns()
+    {
+        ContainerState sack = new ContainerState(
+            Observation.verified(true, "observed inventory", NOW.minusSeconds(1)),
+            Observation.map(Map.of(8778, 12, 8780, 3), "server content varbits", NOW),
+            Observation.verified(13, "derived validated capacity", NOW));
+        FactLookup facts = new AccountStateFacts(AccountState.builder().container("plank_sack", sack).build(), NOW);
+        assertEquals(1.0, facts.get("container.plank_sack.owned").getValue(), 0);
+        assertEquals("observed inventory", facts.get("container.plank_sack.owned").getSource());
+        assertEquals(12.0, facts.get("container.plank_sack.contents.8778.quantity").getValue(), 0);
+        assertEquals("server content varbits", facts.get("container.plank_sack.contents.8778.quantity").getSource());
+        assertEquals(13.0, facts.get("container.plank_sack.free_capacity").getValue(), 0);
+        Requirement currentContents = requirement("container.plank_sack.contents.8778.quantity", 12, false);
+        assertEquals(Requirement.Result.SATISFIED,
+            currentContents.evaluate(facts.get(currentContents.getFact()), NOW));
+        assertEquals(Requirement.Result.UNKNOWN,
+            currentContents.evaluate(facts.get(currentContents.getFact()), NOW.plusSeconds(61)));
+        assertUnknown(facts.get("container.plank_sack.contents.8782.quantity"));
+
+        ContainerState partial = new ContainerState(sack.getOwned(), Observation.unknown(), Observation.unknown());
+        FactLookup partialFacts = new AccountStateFacts(AccountState.builder().container("plank_sack", partial).build(), NOW);
+        assertEquals(1.0, partialFacts.get("container.plank_sack.owned").getValue(), 0);
+        assertUnknown(partialFacts.get("container.plank_sack.contents.8778.quantity"));
+        assertUnknown(partialFacts.get("container.plank_sack.free_capacity"));
+
+        ContainerState future = new ContainerState(Observation.unknown(),
+            Observation.map(Map.of(8778, 28), "future container", NOW.plusSeconds(1)), Observation.unknown());
+        assertUnknown(new AccountStateFacts(AccountState.builder().container("plank_sack", future).build(), NOW)
+            .get("container.plank_sack.contents.8778.quantity"));
+    }
+
     private static Observation<ItemContainerState> container(Map<Integer, ItemStack> slots, String source, Instant time)
     {
         return Observation.verified(new ItemContainerState(slots), source, time);
