@@ -17,7 +17,7 @@ This section describes the implemented format. Later sections remain conceptual 
 - `facts`: objects containing a unique stable `id`
 - `methods`: a nonempty array of method definitions
 
-The only catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs require a deliberate schema/loader extension, including curated source and review metadata; changing the data-kind label alone cannot enable them.
+The synthetic catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs use the separate v2 entry point below; changing the data-kind label alone cannot enable them.
 
 Stable IDs use lowercase letters, digits, underscores and dot-separated segments: `[a-z][a-z0-9_]*(\.[a-z0-9_]+)+`. Every requirement fact and produced resource ID must resolve in the catalog's `facts` declarations. These declarations validate references, not observation availability. Unknown fact observations remain unknown. There are no real skill, quest, item or location registries yet.
 
@@ -52,6 +52,50 @@ Freshness is checked independently of confidence: future timestamps, expired obs
 Evaluation precedence is `BLOCKED` (known failed hard gate), then `UNKNOWN`, then `NEEDS_PREP`, then `AVAILABLE`. Missing hard gates, missing prep and unknown predicates remain in separate immutable diagnostic lists even when another status takes precedence. Only known failed preparation predicates enter preparation output. Unknown danger independently yields `UNKNOWN`. Stop conditions can use the same predicate evaluator later; this slice does not detect completion or filter completed goals.
 
 Validation rejects missing/extra/duplicate JSON fields, nulls, wrong types, unsupported versions/enums, duplicate IDs, unresolved fact references, invalid numeric ranges, empty stop lists and weakened safety policies with field-path errors. Parsing has a depth limit of 32. Validation uses RuneLite's existing Gson dependency; there is no additional runtime library, reflection-based domain deserialization, or separate JSON Schema dependency. Domain constructors copy collections; resource validation is owned by the loader.
+
+### Production Construction catalog v1 (schema v2)
+
+`src/main/resources/uimatlas/methods/construction-v1.json` contains exactly three curated records: novice oak Mahogany Homes contracts, adept teak contracts, and limestone attack stones using an existing flamtaer bag. Catalog revision v1 is distinct from serialization version `2`. Data ships in the JAR; there are no runtime fetches, startup loading, live candidates or UI changes.
+
+`MethodDefinitionLoader.loadProduction(Reader, Set<Integer> canonicalItemIds)` requires `schemaVersion: 2`, `dataKind: PRODUCTION`, and the same root `facts`/`methods` shape as v1. It preserves strict v1 validation and adds two required method fields:
+
+| Field | Contract |
+| --- | --- |
+| `optionalSetup` | Array of ordinary predicates, retained as metadata only. Neither evaluation nor setup scoring reads these. Missing/unknown optional facts cannot create preparation, uncertainty or blockers. No safety-relevant predicates, duplicates, or overlap with required facts. |
+| `sources` | Nonempty array of `{url, reviewedAt, notes}` objects. URL must be absolute HTTPS without user information; review date must be a real ISO `YYYY-MM-DD` date; notes must be nonblank. Every object rejects unknown/missing fields. Review date means human/development source review, not source publication date or account observation freshness. |
+
+Loaded definitions retain immutable `dataKind`, `optionalSetup`, and `sources`. The existing convenience constructor and synthetic loader explicitly produce synthetic definitions with empty curation metadata. The evaluator and scorer remain unchanged and contain no Construction knowledge.
+
+Production IDs start with `method.`. All production string values reject the word markers `synthetic`, `test`, and `fixture` (case insensitive, including underscore-separated labels). Facts must use the supported skill, slot, exact-item namespaces or generic boolean `capability.*` IDs. Capability declarations define a contract, not an observation or inferred unlock. Unknown fact references are rejected. Real skill level predicates require integer targets in [1,99], inventory slot targets integers in [0,28], and capability targets 0 or 1; these shared namespace checks also protect synthetic fixtures using real namespaces. XP/hour remains a finite nonnegative range with maximum >= minimum and explicit assumptions. No midpoint is substituted.
+
+Item-ID existence has an explicit **caller-supplied canonical boundary**. Every item fact declaration must use a canonical nonnegative decimal integer ID accepted by that set. There is no permissive production overload. The offline build tests supply public top-level constants from the pinned RuneLite `gameval.ItemID` dependency; all nine IDs in this catalog were also reviewed against the linked immutable upstream source revision. This validates existence, not item substitutability, acquisition, noted equivalence or container contents. No method-specific item constants or registries are added to Java. Future live loading must supply a verified boundary through supported APIs; test reflection over public constants is not a runtime adapter.
+
+The JAR test loads every packaged method resource through the production loader and requires the exact intended catalog. It also compares all compiled test-class paths against JAR entries and rejects synthetic resource names. Consequently placing a fixture in the production method directory fails the build rather than silently packaging advice. `test` depends on `jar` so ordinary test runs exercise the artifact too.
+
+#### Scope and assumptions of the three records
+
+- Real Construction baselines are 20, 50 and 59 respectively. Boost-dependent strategies are excluded deliberately. The first two records only check basic tools, a loose plank starting minimum and a steel-bar reserve; the reserve is preparation, not an assertion that every contract consumes a bar. They do not claim to fund a complete assigned contract. No axe, sawmill access or particular teleport is a gate for working with already-carried planks. Replenishment routes require future preflight.
+- Ordinary hammer/saw, loose materials, and exact Morytania legs 3 possession are preparation. Alternative tools, tier 4 legs, noted items and nested supplies are not silently substituted. Absence means `NEEDS_PREP`, not a failed level/unlock gate.
+- Limestone is scoped to the documented shop loop with an **already-carried** flamtaer bag. Bag absence is a hard blocker; unknown, historical or expired bag state is UNKNOWN. Dangerous bag acquisition is excluded, not emitted as preparation. The danger classification is CAUTION; it does not assess death-storage compatibility or guarantee safe travel. No death, retrieval, combat or disposal instructions are generated.
+- A limestone build consumes ten loose bricks and produces 200 base Construction XP. The guide's 20 brick positions describe collection capacity, not 20 additional empty positions while already carrying bricks. A separate unsupported capacity predicate prevents inventing this state. The next shop cycle's budget and usable house teleport are also explicit preparation checks. Bag presence never verifies bag contents.
+- Novice XP metadata spans 50,000–72,000/hour across the guide's tick-manipulated collection examples. Its style flag describes that benchmark; tick manipulation is not a hard participation gate. Adept metadata uses the 75,000–85,000 casual-effort example with its stated equipment and travel assumptions. Limestone uses 70,000–80,000 including the guide's upper estimate. These are **conditional benchmarks**, not valid forecasts when their optional setup assumptions are unmet. No generic bank-based XP rate or live efficiency score is used.
+- Attention values are coarse editorial style hints, not measured fractions of active time. Fixed setup/transition minutes and inventory-disruption hints are explicitly neutral/unestimated; zero does not claim zero real cost. Storage-unlock value stays zero: Construction alone earns no arbitrary permanent-storage bonus. No POH/STASH milestone table is introduced.
+- Stops are supply **recheck** boundaries, not claims of total exhaustion: zero loose planks, or fewer than ten loose bricks. Nested materials may still exist. No 1–99 route, fixed goal or automatic completion handling is added.
+
+#### Unsupported required facts
+
+All three methods need `capability.poh.owned`, which `AccountStateFacts` does not supply. Limestone additionally needs these facts; all remain UNKNOWN with the current adapter:
+
+| Fact | Role / meaning |
+| --- | --- |
+| `capability.poh.games_room` | Hard: accessible games room stone space |
+| `capability.diary.morytania_hard` | Hard: completed hard Morytania Diary |
+| `capability.razmire.serum_208` | Hard: permanently restored Razmire |
+| `capability.travel.house_teleport` | Preparation: usable teleport and supplies for the loop |
+| `capability.inventory.limestone_cycle_space` | Preparation: 20 positions usable for brick collection, including existing bricks |
+| `capability.supplies.limestone_restock_budget` | Preparation: coins for the next 80-brick purchase cycle at actual shop prices |
+
+Requirement descriptions carry these semantics in the resource itself. Optional capabilities are also unsupported but intentionally ignored by eligibility. Every predicate uses an explicit 300-second maximum age and current verification; this is a conservative catalog policy, not a Wiki claim. Production tests supply explicitly constructed observations only to exercise evaluator branches; they do not install an observation provider or fabricate a live winner.
 
 ### Account state fact contract
 

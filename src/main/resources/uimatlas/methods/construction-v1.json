@@ -1,0 +1,622 @@
+{
+  "schemaVersion": 2,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {
+      "id": "capability.diary.morytania_hard"
+    },
+    {
+      "id": "capability.inventory.limestone_cycle_space"
+    },
+    {
+      "id": "capability.poh.games_room"
+    },
+    {
+      "id": "capability.poh.owned"
+    },
+    {
+      "id": "capability.razmire.serum_208"
+    },
+    {
+      "id": "capability.supplies.limestone_restock_budget"
+    },
+    {
+      "id": "capability.supplies.log_basket"
+    },
+    {
+      "id": "capability.supplies.noted_planks"
+    },
+    {
+      "id": "capability.travel.contract_teleports"
+    },
+    {
+      "id": "capability.travel.house_teleport"
+    },
+    {
+      "id": "capability.travel.run_energy_support"
+    },
+    {
+      "id": "carried.item.13114.quantity"
+    },
+    {
+      "id": "inventory.free_slots"
+    },
+    {
+      "id": "inventory.item.12854.quantity"
+    },
+    {
+      "id": "inventory.item.2347.quantity"
+    },
+    {
+      "id": "inventory.item.2353.quantity"
+    },
+    {
+      "id": "inventory.item.24882.quantity"
+    },
+    {
+      "id": "inventory.item.3420.quantity"
+    },
+    {
+      "id": "inventory.item.8778.quantity"
+    },
+    {
+      "id": "inventory.item.8780.quantity"
+    },
+    {
+      "id": "inventory.item.8794.quantity"
+    },
+    {
+      "id": "skill.construction.level"
+    },
+    {
+      "id": "skill.construction.xp"
+    }
+  ],
+  "methods": [
+    {
+      "id": "method.construction.mahogany_homes.novice",
+      "displayName": "Mahogany Homes — Novice oak contracts",
+      "category": "TRAINING",
+      "activity": "CONSTRUCTION",
+      "start": {
+        "location": "Falador, south of the park",
+        "contact": "Amy",
+        "instruction": "Request a novice contract. Subsequent contracts can come from any contractor."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.construction.level",
+          "comparison": "AT_LEAST",
+          "target": 20,
+          "description": "Unboosted Construction baseline; temporary boost strategies are outside this record.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.poh.owned",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Own a player-owned house. Currently unsupported by AccountStateFacts; verify before eligibility.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "No additional empty slots required by this initial loose-supply check. Keep room for resupply; capacity with nested containers is unmodeled.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.2347.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary hammer in inventory; alternative tools are not modeled.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.8794.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary saw in inventory; alternative tools are not modeled.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.2353.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Reserve one loose steel bar for a possible repair; not every contract consumes it.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "inventory.item.8778.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "At least one loose oak plank to begin repair work. This is a starting-stock check, not enough stock to guarantee completing an assigned contract.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "inventory.item.8778.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Pause to recheck supplies when loose planks run out; a plank sack is not inspected.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.8,
+        "playStyle": "Focused benchmark; slower play remains possible",
+        "tickManipulation": true
+      },
+      "xpRate": {
+        "minimum": 50000,
+        "maximum": 72000,
+        "assumptions": "Conditional UIM benchmark: tick-manipulated oak collection, balloon or ring of the elements transport, with or without a plank sack. The endpoints span those setups. Slower play is outside this range; prepared noted supplies may differ. This does not require tick manipulation to participate."
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Neutral unestimated fixed costs, not zero real travel or setup time. Supply gathering, unnoting and travel depend on account state. No storage benefit is attributed to training alone."
+      },
+      "danger": "LOW",
+      "reason": "Training: more experience from each carried plank. Eligibility: house ownership must be verified. Scope: basic tools and loose starting supplies only; assignment quantities and resupply need later preflight.",
+      "optionalSetup": [
+        {
+          "fact": "inventory.item.24882.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional plank sack for fewer supply trips; contents are not observed.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.travel.contract_teleports",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional efficient travel to contract cities; charged transport and spell access are not observed.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.supplies.noted_planks",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional noted supplies can reduce collection time; not equivalent to loose planks.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Construction",
+          "reviewedAt": "2026-09-14",
+          "notes": "Direct current source reviewed. UIM supply loops and conditional rate estimates; rates are not forecasts for arbitrary inventories."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Mahogany_Homes",
+          "reviewedAt": "2026-09-14",
+          "notes": "Reviewed tiers, house prerequisite, tools, occasional steel use, Amy start and optional transport. Contract requirements are boostable; these records deliberately use real levels. No generic bank-based XP rate is used."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/ac79ed8bd8926bec7bf172aa291574b4d944b0e7/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact ordinary item IDs verified in RuneLite gameval ItemID. Noted, dummy and alternative tools are not equivalent in this catalog."
+        }
+      ]
+    },
+    {
+      "id": "method.construction.mahogany_homes.adept",
+      "displayName": "Mahogany Homes — Adept teak contracts",
+      "category": "TRAINING",
+      "activity": "CONSTRUCTION",
+      "start": {
+        "location": "Falador, south of the park",
+        "contact": "Amy",
+        "instruction": "Request a adept contract. Subsequent contracts can come from any contractor."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.construction.level",
+          "comparison": "AT_LEAST",
+          "target": 50,
+          "description": "Unboosted Construction baseline; temporary boost strategies are outside this record.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.poh.owned",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Own a player-owned house. Currently unsupported by AccountStateFacts; verify before eligibility.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "preparation": [],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "No additional empty slots required by this initial loose-supply check. Keep room for resupply; capacity with nested containers is unmodeled.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.2347.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary hammer in inventory; alternative tools are not modeled.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.8794.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary saw in inventory; alternative tools are not modeled.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.2353.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Reserve one loose steel bar for a possible repair; not every contract consumes it.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "inventory.item.8780.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "At least one loose teak plank to begin repair work. This is a starting-stock check, not enough stock to guarantee completing an assigned contract.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [],
+      "stopConditions": [
+        {
+          "fact": "inventory.item.8780.quantity",
+          "comparison": "AT_MOST",
+          "target": 0,
+          "description": "Pause to recheck supplies when loose planks run out; a plank sack is not inspected.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.5,
+        "playStyle": "Balanced; active travel and repairs",
+        "tickManipulation": false
+      },
+      "xpRate": {
+        "minimum": 75000,
+        "maximum": 85000,
+        "assumptions": "Conditional UIM benchmark: casual effort without tick manipulation, plank sack and log basket, Avium Savannah teaks, POH portals to reach fairy ring AJP or Outer Fortis, ring of the elements to the sawmill, and unnoted steel bars. Missing these optimizations may reduce rates below this range."
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Neutral unestimated fixed costs, not zero real travel or setup time. Supply gathering, unnoting and travel depend on account state. No storage benefit is attributed to training alone."
+      },
+      "danger": "LOW",
+      "reason": "Training: more experience from each carried plank. Eligibility: house ownership must be verified. Scope: basic tools and loose starting supplies only; assignment quantities and resupply need later preflight.",
+      "optionalSetup": [
+        {
+          "fact": "inventory.item.24882.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional plank sack for fewer supply trips; contents are not observed.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.travel.contract_teleports",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional efficient travel to contract cities; charged transport and spell access are not observed.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.supplies.noted_planks",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional noted supplies can reduce collection time; not equivalent to loose planks.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.supplies.log_basket",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional usable log basket for the quoted collection benchmark; contents and variants are not observed.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Construction",
+          "reviewedAt": "2026-09-14",
+          "notes": "Direct current source reviewed. UIM supply loops and conditional rate estimates; rates are not forecasts for arbitrary inventories."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Mahogany_Homes",
+          "reviewedAt": "2026-09-14",
+          "notes": "Reviewed tiers, house prerequisite, tools, occasional steel use, Amy start and optional transport. Contract requirements are boostable; these records deliberately use real levels. No generic bank-based XP rate is used."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/ac79ed8bd8926bec7bf172aa291574b4d944b0e7/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact ordinary item IDs verified in RuneLite gameval ItemID. Noted, dummy and alternative tools are not equivalent in this catalog."
+        }
+      ]
+    },
+    {
+      "id": "method.construction.limestone_attack_stones",
+      "displayName": "Limestone attack stones — existing flamtaer bag",
+      "category": "TRAINING",
+      "activity": "CONSTRUCTION",
+      "start": {
+        "location": "Mort'ton supply loop and POH games room",
+        "contact": "Razmire Keelgan",
+        "instruction": "Use the builder shop supply loop only with the existing bag and verified access; build at the stone space in your games room."
+      },
+      "hardRequirements": [
+        {
+          "fact": "skill.construction.level",
+          "comparison": "AT_LEAST",
+          "target": 59,
+          "description": "Unboosted Construction baseline for limestone attack stones.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.poh.owned",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Own a player-owned house; currently unsupported.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.poh.games_room",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Have an accessible games room stone space; currently unsupported.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.diary.morytania_hard",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Complete the hard Morytania Diary for this supply loop; currently unsupported.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.razmire.serum_208",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Have permanently restored Razmire with serum 208; currently unsupported.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.12854.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "An already-owned flamtaer bag must be carried. Acquisition is outside this method; never turn its absence into routine preparation.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": true
+        }
+      ],
+      "preparation": [
+        {
+          "fact": "capability.travel.house_teleport",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Have a usable house teleport with its supplies for the return loop; currently unsupported.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.inventory.limestone_cycle_space",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Have 20 inventory positions usable for bricks during collection, counting bricks already carried. Currently unsupported; do not require 20 extra empty slots after loading.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "capability.supplies.limestone_restock_budget",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Have coins for the next 80-brick shop cycle at its actual stock-dependent prices; currently unsupported. This is not a session budget.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "freeInventorySlots": {
+        "fact": "inventory.free_slots",
+        "comparison": "AT_LEAST",
+        "target": 0,
+        "description": "No additional empty-slot minimum while carrying the building batch; collection capacity requires a separate verified check.",
+        "allowLastObserved": false,
+        "maxAgeSeconds": 300,
+        "safetyRelevant": false
+      },
+      "setupItems": [
+        {
+          "fact": "inventory.item.2347.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary hammer in inventory.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "inventory.item.8794.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Ordinary saw in inventory.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        },
+        {
+          "fact": "carried.item.13114.quantity",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Morytania legs 3 for Burgh de Rott travel; tier 4 is not modeled as equivalent.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "consumes": [
+        {
+          "fact": "inventory.item.3420.quantity",
+          "comparison": "AT_LEAST",
+          "target": 10,
+          "description": "Ten loose limestone bricks for one build. Bag contents do not count as verified loose materials.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "produces": [
+        {
+          "resourceId": "skill.construction.xp",
+          "quantity": 200,
+          "basis": "Per limestone attack stone built, before any outfit bonus; XP is not an inventory item."
+        }
+      ],
+      "stopConditions": [
+        {
+          "fact": "inventory.item.3420.quantity",
+          "comparison": "AT_MOST",
+          "target": 9,
+          "description": "Pause to recheck supplies below one loose batch; the bag may contain more bricks but its contents are unknown.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "style": {
+        "attention": 0.7,
+        "playStyle": "Active; frequent purchases and rebuilding",
+        "tickManipulation": false
+      },
+      "xpRate": {
+        "minimum": 70000,
+        "maximum": 80000,
+        "assumptions": "Guide supply-loop benchmark: 70,000–75,000 with mistakes, up to 80,000. Assumes the existing bag, 20 brick positions, shop access, funded resupply, house teleports and Morytania legs travel. Not a measured forecast for this account."
+      },
+      "costs": {
+        "storageUnlockValue": 0,
+        "setupMinutes": 0,
+        "transitionMinutes": 0,
+        "inventoryDisruption": 0,
+        "assumptions": "Neutral unestimated fixed costs. The next shop cycle needs a separate budget check; no session cost is forecast. Bag acquisition, room construction and dangerous storage transitions are outside this method. No storage-unlock score."
+      },
+      "danger": "CAUTION",
+      "reason": "Alternative: a brick-based UIM supply loop. Boundary: already-owned bag only. Risk: Mort'ton travel is not declared safe; the bag and its contents are lost on death. No death-storage compatibility is assessed.",
+      "optionalSetup": [
+        {
+          "fact": "capability.travel.run_energy_support",
+          "comparison": "AT_LEAST",
+          "target": 1,
+          "description": "Optional graceful outfit or POH run-energy pool; neither is a hard gate.",
+          "allowLastObserved": false,
+          "maxAgeSeconds": 300,
+          "safetyRelevant": false
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Construction",
+          "reviewedAt": "2026-09-14",
+          "notes": "Direct current source reviewed. UIM supply loops and conditional rate estimates; rates are not forecasts for arbitrary inventories."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Limestone_attack_stone",
+          "reviewedAt": "2026-09-14",
+          "notes": "Verified level, games room stone space, tools, ten-brick recipe and 200 base XP per build."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Flamtaer_bag",
+          "reviewedAt": "2026-09-14",
+          "notes": "Verified actual item ID and loss on death. Bricks must be emptied before POH building. Bag presence is not evidence of its contents; dangerous acquisition is excluded."
+        },
+        {
+          "url": "https://oldschool.runescape.wiki/w/Morytania_legs_3",
+          "reviewedAt": "2026-09-14",
+          "notes": "Verified exact item ID, hard diary reward and Burgh de Rott teleport from inventory or equipment."
+        },
+        {
+          "url": "https://github.com/runelite/runelite/blob/ac79ed8bd8926bec7bf172aa291574b4d944b0e7/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
+          "reviewedAt": "2026-09-14",
+          "notes": "Exact ordinary item IDs verified in RuneLite gameval ItemID. Noted, dummy and alternative tools are not equivalent in this catalog."
+        }
+      ]
+    }
+  ]
+}

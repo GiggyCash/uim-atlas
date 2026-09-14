@@ -15,6 +15,10 @@ tasks.register('javaSourceSize') {
         rows.take(10).each { report.append("  ${it.chars}, ${it.lines}: ${it.path}\n") }
         def resources = fileTree('src').matching { include '**/resources/**' }.files
         report.append("Resources/data: ${resources.size()} files, ${resources.sum { it.length() } ?: 0} bytes\n")
+        ['main', 'test'].each { sourceSet ->
+            def files = fileTree("src/${sourceSet}/resources").files
+            report.append("  ${sourceSet}: ${files.size()} files, ${files.sum { it.length() } ?: 0} bytes\n")
+        }
         def output = layout.buildDirectory.file('reports/java-source-size.txt').get().asFile
         output.parentFile.mkdirs()
         output.setText(report.toString(), 'UTF-8')

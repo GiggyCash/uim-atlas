@@ -31,7 +31,10 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 test {
+    dependsOn tasks.named('jar')
     systemProperty 'java.awt.headless', 'true'
+    systemProperty 'pluginJar', tasks.named('jar').get().archiveFile.get().asFile.absolutePath
+    systemProperty 'testClassesDirectory', layout.buildDirectory.dir('classes/java/test').get().asFile.absolutePath
 }
 
 tasks.register('run', JavaExec) {

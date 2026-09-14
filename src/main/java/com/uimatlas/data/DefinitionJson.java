@@ -15,10 +15,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 /** Strict JSON and field checks; no reflection-based population or silent defaults. */
 final class DefinitionJson
 {
+    private static final Pattern TEST_MARKER = Pattern.compile("(?i)(^|[^a-z])(synthetic|test|fixture)([^a-z]|$)");
     private final JsonObject object;
     private final String path;
 
@@ -90,6 +92,27 @@ final class DefinitionJson
         actual.removeAll(expected);
         require(missing.isEmpty() && actual.isEmpty(), path + ": missing fields " + missing + "; unknown fields " + actual);
         return this;
+    }
+
+    void rejectMarkers()
+    {
+        rejectMarkers(object, path);
+    }
+
+    private static void rejectMarkers(JsonElement value, String path)
+    {
+        if (value.isJsonObject())
+        {
+            value.getAsJsonObject().entrySet().forEach(entry -> rejectMarkers(entry.getValue(), path + "." + entry.getKey()));
+        }
+        else if (value.isJsonArray())
+        {
+            value.getAsJsonArray().forEach(entry -> rejectMarkers(entry, path + "[]"));
+        }
+        else if (value.getAsJsonPrimitive().isString())
+        {
+            require(!TEST_MARKER.matcher(value.getAsString()).find(), path + ": production contains test marker");
+        }
     }
 
     String text(String name)
