@@ -2,6 +2,7 @@ package com.uimatlas.plugin;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.uimatlas.planning.PlanningService;
 import com.uimatlas.state.AccountState;
 import com.uimatlas.state.AccountStateService;
 import com.uimatlas.ui.UimAtlasPanel;
@@ -56,6 +57,13 @@ public class UimAtlasPluginTest
         verify(toolbar).addNavigation(navigation.capture());
         assertTrue(navigation.getValue().getPanel() instanceof UimAtlasPanel);
         assertEquals(24, navigation.getValue().getIcon().getWidth());
+        UimAtlasPanel panel = (UimAtlasPanel) navigation.getValue().getPanel();
+        assertEquals("SELECT GOAL", panel.getDisplayed().getStatus());
+        String goalId = injector.getInstance(PlanningService.class).getGoals().get(0).getId();
+        SwingUtilities.invokeAndWait(() -> panel.selectGoal(goalId));
+        flushSwing();
+        assertEquals(goalId, panel.getDisplayed().getSelectedGoalId());
+        assertEquals("NEEDS INFO", panel.getDisplayed().getStatus());
 
         events.post(new ScriptPostFired(ScriptID.QUESTLIST_INIT));
         verifyNoInteractions(client); // Script callbacks only mark dirty; they cannot run nested scripts.
@@ -64,6 +72,17 @@ public class UimAtlasPluginTest
         logout.setGameState(GameState.LOGIN_SCREEN);
         events.post(logout);
         assertEquals(AccountState.empty(), states.getSnapshot());
+        flushSwing();
+        assertEquals("Waiting for account state.", panel.getDisplayed().getNext());
+
+        states.publish(AccountState.builder().loggedIn(true).build());
+        GameStateChanged hop = new GameStateChanged();
+        hop.setGameState(GameState.HOPPING);
+        events.post(hop);
+        assertEquals(AccountState.empty(), states.getSnapshot());
+        flushSwing();
+        assertEquals("Waiting for account state.", panel.getDisplayed().getNext());
+
         states.publish(AccountState.builder().loggedIn(true).build());
         events.post(new ProfileChanged());
         assertEquals(AccountState.empty(), states.getSnapshot());

@@ -94,7 +94,7 @@ public class RfdSkillCoverageTest
     }
 
     @Test
-    public void questAndTrainingCompeteUsingOnlyExistingSharedFactors() throws Exception
+    public void frontierQuestPriorityPrecedesSharedFactorComparison() throws Exception
     {
         List<MethodDefinition> methods = ProductionSkillCoverageCatalogTest.load();
         AccountState base = account(Map.of("FISHING", 40));
@@ -107,10 +107,14 @@ public class RfdSkillCoverageTest
         assertEquals(StrategicAction.Readiness.READY_TO_HANDOFF, questWins.getBestActionable().orElseThrow().getAction().getReadiness());
         assertEquals(3, questWins.getBestActionable().orElseThrow().getScore().orElseThrow().getTotal(), 0);
         assertTrue(method(questWins, FLY).getActionability().isActionable());
-        StrategicDecision.Result trainingWins = decide(state, methods, Map.of(), Map.of(PIRATE, questCosts(.2)));
-        assertEquals(FLY, trainingWins.getBestActionable().orElseThrow().getAction().getId());
-        assertEquals(2.6, trainingWins.getCandidates().stream().filter(c -> c.getAction().getId().equals(PIRATE))
-            .findFirst().orElseThrow().getScore().orElseThrow().getTotal(), .00001);
+        StrategicDecision.Result priorityWins = decide(state, methods, Map.of(), Map.of(PIRATE, questCosts(.2)));
+        StrategicDecision.Candidate quest = priorityWins.getCandidates().stream()
+            .filter(c -> c.getAction().getId().equals(PIRATE)).findFirst().orElseThrow();
+        assertEquals(2.6, quest.getScore().orElseThrow().getTotal(), .00001);
+        assertTrue(method(priorityWins, FLY).getScore().orElseThrow().getTotal()
+            > quest.getScore().orElseThrow().getTotal());
+        assertEquals(StrategicDecision.Priority.FRONTIER_HANDOFF, quest.getPriority());
+        assertEquals(PIRATE, priorityWins.getBestActionable().orElseThrow().getAction().getId());
     }
 
     @Test

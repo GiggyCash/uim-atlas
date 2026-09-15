@@ -102,7 +102,7 @@ public class RuneLiteAccountObserverTest
     {
         observer.refresh();
         clearInvocations(client);
-        observer.refresh();
+        assertFalse(observer.refresh());
         verify(client, never()).getRealSkillLevel(any());
         verify(client, never()).getItemContainer(anyInt());
         verify(client, never()).runScript(anyInt(), any());
@@ -112,11 +112,30 @@ public class RuneLiteAccountObserverTest
         observer.skillsChanged();
         observer.containerChanged(InventoryID.INV);
         observer.containerChanged(InventoryID.INV);
-        observer.refresh();
+        assertTrue(observer.refresh());
         assertEquals(11, states.getSnapshot().getSkills().getValue().get("ATTACK").getLevel());
         assertEquals(0, states.getSnapshot().getInventory().getValue().occupiedSlots());
         verify(client, times(1)).getRealSkillLevel(Skill.ATTACK);
         verify(client, times(1)).getItemContainer(InventoryID.INV);
+    }
+
+    @Test
+    public void plannerFreshnessRequestsOnlyRelevantSupportedObservationFamilies()
+    {
+        observer.refresh();
+        clearInvocations(client);
+        observer.factsChanged(java.util.Set.of("skill.cooking.level", "carried.item.590.quantity"));
+        assertTrue(observer.refresh());
+        verify(client, atLeastOnce()).getRealSkillLevel(any());
+        verify(client).getItemContainer(InventoryID.INV);
+        verify(client).getItemContainer(InventoryID.WORN);
+        verify(client, never()).runScript(anyInt(), any());
+
+        clearInvocations(client);
+        observer.factsChanged(java.util.Set.of("quest.2310.complete"));
+        assertTrue(observer.refresh());
+        verify(client, atLeastOnce()).runScript(eq(ScriptID.QUEST_STATUS_GET), any());
+        verify(client, never()).getItemContainer(anyInt());
     }
 
     @Test

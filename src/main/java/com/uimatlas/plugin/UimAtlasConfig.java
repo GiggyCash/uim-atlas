@@ -9,7 +9,7 @@ public interface UimAtlasConfig extends Config
 {
     String GROUP = "uimatlas";
 
-    @ConfigItem(keyName = "showSidebar", name = "Show sidebar", description = "Show the UIM Atlas account summary")
+    @ConfigItem(keyName = "showSidebar", name = "Show sidebar", description = "Show the UIM Atlas planner")
     default boolean showSidebar()
     {
         return true;

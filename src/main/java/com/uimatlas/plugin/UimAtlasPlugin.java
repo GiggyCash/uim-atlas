@@ -1,13 +1,20 @@
 package com.uimatlas.plugin;
 
 import com.google.inject.Provides;
+import com.uimatlas.planning.PlanningService;
 import com.uimatlas.state.AccountStateService;
 import com.uimatlas.state.RuneLiteAccountObserver;
 import com.uimatlas.ui.AccountSummary;
+import com.uimatlas.ui.PlannerViewModel;
 import com.uimatlas.ui.UimAtlasPanel;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
 import net.runelite.api.GameState;
+import net.runelite.api.Quest;
 import net.runelite.api.ScriptID;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
@@ -25,20 +32,28 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @PluginDescriptor(name = "UIM Atlas", description = "Observable account state for Ultimate Ironman planning",
     tags = {"ultimate", "ironman", "uim", "planning"})
 public class UimAtlasPlugin extends Plugin
 {
+    private static final int PINNED_MAXIMUM_QUEST_POINTS = 333;
+
     @Inject private ClientToolbar toolbar;
     @Inject private ClientThread clientThread;
     @Inject private UimAtlasConfig config;
     @Inject private AccountStateService states;
     @Inject private RuneLiteAccountObserver observer;
+    @Inject private PlanningService planningService;
 
     private UimAtlasPanel panel;
     private NavigationButton navigation;
     private volatile boolean running;
+    private volatile String selectedGoalId;
+    private volatile PlanningService.Result planning;
+    private String lastPlanningLog;
 
     @Provides
     UimAtlasConfig provideConfig(ConfigManager manager)
@@ -46,21 +61,37 @@ public class UimAtlasPlugin extends Plugin
         return manager.getConfig(UimAtlasConfig.class);
     }
 
+    @Provides
+    @Singleton
+    PlanningService providePlanningService()
+    {
+        return PlanningService.loadProduction(UimAtlasPlugin.class.getClassLoader(),
+            Arrays.stream(Quest.values()).map(Quest::getId).collect(Collectors.toSet()),
+            PINNED_MAXIMUM_QUEST_POINTS);
+    }
+
     @Override
     protected void startUp()
     {
         running = true;
-        clientThread.invokeLater(observer::reset);
+        selectedGoalId = null;
+        planning = planningService.plan(states.getSnapshot(), null, Instant.now());
+        clientThread.invokeLater(() ->
+        {
+            observer.reset();
+            recalculate(Instant.now());
+            render();
+        });
         SwingUtilities.invokeLater(() ->
         {
             if (!running)
             {
                 return;
             }
-            panel = new UimAtlasPanel();
+            panel = new UimAtlasPanel(this::selectGoal);
             navigation = NavigationButton.builder().tooltip("UIM Atlas").priority(7)
                 .icon(UimAtlasPanel.navigationIcon()).panel(panel).build();
-            panel.render(AccountSummary.from(states.getSnapshot()));
+            panel.render(viewModel());
             updateNavigation();
         });
     }
@@ -69,6 +100,8 @@ public class UimAtlasPlugin extends Plugin
     protected void shutDown()
     {
         running = false;
+        planning = null;
+        selectedGoalId = null;
         clientThread.invokeLater(observer::reset);
         SwingUtilities.invokeLater(() ->
         {
@@ -86,7 +119,18 @@ public class UimAtlasPlugin extends Plugin
     {
         if (running)
         {
-            observer.refresh();
+            Instant refreshCheck = Instant.now();
+            boolean due = planning != null && planning.getRefreshAt() != null
+                && !refreshCheck.isBefore(planning.getRefreshAt());
+            if (due)
+            {
+                observer.factsChanged(planning.getRefreshFacts());
+            }
+            if (observer.refresh() || due)
+            {
+                // refresh() timestamps observations, so planning must capture its cutoff afterwards.
+                recalculate(Instant.now());
+            }
             render();
         }
     }
@@ -97,6 +141,7 @@ public class UimAtlasPlugin extends Plugin
         if (event.getGameState() != GameState.LOGGED_IN)
         {
             observer.reset();
+            recalculate(Instant.now());
             render();
         }
     }
@@ -146,6 +191,7 @@ public class UimAtlasPlugin extends Plugin
         clientThread.invokeLater(() ->
         {
             observer.reset();
+            recalculate(Instant.now());
             render();
         });
     }
@@ -176,12 +222,50 @@ public class UimAtlasPlugin extends Plugin
 
     private void render()
     {
+        PlannerViewModel view = viewModel();
         SwingUtilities.invokeLater(() ->
         {
             if (running && panel != null)
             {
-                panel.render(AccountSummary.from(states.getSnapshot()));
+                panel.render(view);
             }
         });
+    }
+
+    private PlannerViewModel viewModel()
+    {
+        PlanningService.Result result = planning;
+        if (result == null)
+        {
+            result = planningService.plan(states.getSnapshot(), selectedGoalId, Instant.now());
+        }
+        return PlannerViewModel.from(AccountSummary.from(states.getSnapshot()), result);
+    }
+
+    private void selectGoal(String goalId)
+    {
+        if (running)
+        {
+            clientThread.invokeLater(() ->
+            {
+                selectedGoalId = goalId;
+                recalculate(Instant.now());
+                render();
+            });
+        }
+    }
+
+    private void recalculate(Instant now)
+    {
+        planning = planningService.plan(states.getSnapshot(), selectedGoalId, now);
+        String selected = planning.getPrimary() == null ? "none" : planning.getPrimary().getAction().getId();
+        String summary = String.format("goal=%s methods=%d relevant=%d actionable=%d selected=%s",
+            selectedGoalId, planning.getMethodCount(), planning.getRelevantMethodCount(),
+            planning.getActionableCount(), selected);
+        if (!summary.equals(lastPlanningLog))
+        {
+            log.debug("Planner {}", summary);
+            lastPlanningLog = summary;
+        }
     }
 }

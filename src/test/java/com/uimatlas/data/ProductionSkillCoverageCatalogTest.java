@@ -10,12 +10,15 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -64,6 +67,35 @@ public class ProductionSkillCoverageCatalogTest
         assertThrows(UnsupportedOperationException.class, methods::clear);
         assertEquals(1, pack.stream().filter(m -> m.getId().equals("method.agility.draynor_rooftop"))
             .findFirst().orElseThrow().getHardRequirements().get(0).getTarget(), 0);
+    }
+
+    @Test
+    public void runtimePinnedItemBoundaryExactlyMatchesCatalogItemFacts() throws Exception
+    {
+        Set<Integer> pinned = new HashSet<>();
+        try (InputStream input = getClass().getResourceAsStream(
+            "/uimatlas/items/catalog-item-ids-1.12.38.txt"))
+        {
+            assertNotNull(input);
+            for (String line : new String(input.readAllBytes(), StandardCharsets.UTF_8).split("\\R"))
+            {
+                assertTrue(line, line.matches("0|[1-9][0-9]*"));
+                assertTrue(pinned.add(Integer.parseInt(line)));
+            }
+        }
+        Set<Integer> declared = new HashSet<>();
+        Pattern item = Pattern.compile("(?:item|contents)\\.([0-9]+)\\.(?:quantity|usable_slots|occupied_slots)");
+        for (String file : CATALOG_COUNTS.keySet())
+        {
+            for (com.google.gson.JsonElement value : parseJson(file).getAsJsonArray("facts"))
+            {
+                Matcher match = item.matcher(value.getAsJsonObject().get("id").getAsString());
+                if (match.find()) { declared.add(Integer.parseInt(match.group(1))); }
+            }
+        }
+        assertEquals(declared, pinned);
+        assertTrue(ProductionConstructionCatalogTest.canonicalItems().containsAll(pinned));
+        assertEquals(load(), new ProductionMethodCatalog().loadBundled(getClass().getClassLoader()));
     }
 
     @Test
@@ -187,6 +219,11 @@ public class ProductionSkillCoverageCatalogTest
             assertNotNull(input);
             return new String(input.readAllBytes(), StandardCharsets.UTF_8);
         }
+    }
+
+    private static JsonObject parseJson(String file) throws Exception
+    {
+        return new JsonParser().parse(json(file)).getAsJsonObject();
     }
 
     private static List<MethodDefinition> parse(String json) throws Exception

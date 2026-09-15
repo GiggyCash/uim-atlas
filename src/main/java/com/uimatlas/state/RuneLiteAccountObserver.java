@@ -1,8 +1,10 @@
 package com.uimatlas.state;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -84,23 +86,42 @@ public class RuneLiteAccountObserver
         questsDirty = true;
     }
 
-    public void refresh()
+    /** Marks only the supported observation families whose planner freshness window is expiring. */
+    public void factsChanged(Collection<String> facts)
+    {
+        for (String fact : facts)
+        {
+            skillsDirty |= fact.startsWith("skill.");
+            inventoryDirty |= fact.startsWith("inventory.") || fact.startsWith("carried.")
+                || fact.startsWith("container.");
+            equipmentDirty |= fact.startsWith("equipment.") || fact.startsWith("carried.");
+            questsDirty |= fact.startsWith("quest.") || fact.equals("account.quest_points");
+            containersDirty |= fact.startsWith("container.");
+        }
+    }
+
+    /** Returns true when facts used by planning were refreshed or their values changed. */
+    public boolean refresh()
     {
         if (client.getGameState() != GameState.LOGGED_IN)
         {
+            boolean changed = states.getSnapshot().isLoggedIn();
             reset();
-            return;
+            return changed;
         }
         long currentHash = client.getAccountHash();
         if (currentHash == -1)
         {
+            boolean changed = states.getSnapshot().isLoggedIn();
             reset();
-            return;
+            return changed;
         }
+        boolean changed = false;
         if (currentHash != accountHash)
         {
             reset();
             accountHash = currentHash;
+            changed = true;
         }
 
         Instant now = Instant.now();
@@ -108,15 +129,20 @@ public class RuneLiteAccountObserver
         AccountState.AccountStateBuilder next = previous.toBuilder().loggedIn(true);
         Observation<ItemContainerState> inventory = previous.getInventory();
         AccountMode mode = AccountMode.fromId(client.getVarbitValue(VarbitID.IRONMAN));
-        next.accountMode(mode == AccountMode.UNKNOWN ? Observation.unknown()
-            : Observation.verified(mode, "RuneLite: account-mode varbit", now));
-        next.capabilities(readCapabilities(now));
+        Observation<AccountMode> accountMode = mode == AccountMode.UNKNOWN ? Observation.unknown()
+            : Observation.verified(mode, "RuneLite: account-mode varbit", now);
+        Observation<Map<String, Boolean>> capabilities = readCapabilities(now);
+        changed |= !sameValue(previous.getAccountMode(), accountMode)
+            || !sameValue(previous.getCapabilities(), capabilities);
+        next.accountMode(accountMode);
+        next.capabilities(capabilities);
 
         if (skillsDirty)
         {
             Observation<Map<String, SkillState>> skills = readSkills(now);
             next.skills(skills);
             skillsDirty = !skills.isKnown();
+            changed |= skills.isKnown() || !sameValue(previous.getSkills(), skills);
         }
         if (inventoryDirty)
         {
@@ -124,12 +150,14 @@ public class RuneLiteAccountObserver
             next.inventory(inventory);
             inventoryDirty = !inventory.isKnown();
             containersDirty = true;
+            changed |= inventory.isKnown() || !sameValue(previous.getInventory(), inventory);
         }
         if (equipmentDirty)
         {
             Observation<ItemContainerState> equipment = readContainer(InventoryID.WORN, now);
             next.equipment(equipment);
             equipmentDirty = !equipment.isKnown();
+            changed |= equipment.isKnown() || !sameValue(previous.getEquipment(), equipment);
         }
         if (questsDirty)
         {
@@ -137,6 +165,7 @@ public class RuneLiteAccountObserver
             questsDirty = false;
             next.quests(readQuests(now));
             next.questPoints(readQuestPoints(now));
+            changed = true;
         }
         if (containersDirty)
         {
@@ -144,9 +173,17 @@ public class RuneLiteAccountObserver
             next.containers(containers);
             ContainerState sack = containers.get(PLANK_SACK);
             containersDirty = sack.getOwned().isKnown() && !sack.getContents().isKnown();
+            changed |= !Objects.equals(previous.getContainers(), containers);
         }
         next.location(readLocation(now));
         states.publish(next.build());
+        return changed;
+    }
+
+    private boolean sameValue(Observation<?> left, Observation<?> right)
+    {
+        return left.isKnown() == right.isKnown() && left.getConfidence() == right.getConfidence()
+            && Objects.equals(left.getValue(), right.getValue());
     }
 
     private Map<String, ContainerState> readContainers(Observation<ItemContainerState> inventory, Instant now)

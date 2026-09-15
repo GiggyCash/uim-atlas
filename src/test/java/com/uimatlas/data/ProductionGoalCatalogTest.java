@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.uimatlas.recommendation.GoalDefinition;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -103,8 +104,14 @@ public class ProductionGoalCatalogTest
         try (JarFile file = new JarFile(jar))
         {
             assertNotNull(file.getEntry("uimatlas/goals/recipe-for-disaster-v1.json"));
+            assertNotNull(file.getEntry("uimatlas/goals/catalogs.txt"));
             assertTrue(file.stream().noneMatch(entry -> entry.getName().contains("synthetic")
-                || entry.getName().contains("fixture") || entry.getName().startsWith("com/uimatlas/data/ProductionGoal")));
+                || entry.getName().contains("fixture")));
+            try (java.io.BufferedReader index = new java.io.BufferedReader(new InputStreamReader(
+                file.getInputStream(file.getJarEntry("uimatlas/goals/catalogs.txt")), StandardCharsets.UTF_8)))
+            {
+                assertEquals(List.of(CATALOG.substring(1)), index.lines().collect(Collectors.toList()));
+            }
         }
         try (Stream<Path> sources = Files.walk(Path.of("src/main/java")))
         {
@@ -115,6 +122,15 @@ public class ProductionGoalCatalogTest
                 assertFalse(path.toString(), source.contains("Recipe for Disaster"));
             }
         }
+    }
+
+    @Test
+    public void genericProductionGoalIndexLoadsThePackagedGoal() throws Exception
+    {
+        List<GoalDefinition> goals = new ProductionGoalCatalog().load(getClass().getClassLoader(),
+            Arrays.stream(Quest.values()).map(Quest::getId).collect(Collectors.toSet()), 333);
+        assertEquals(List.of("goal.recipe_for_disaster"),
+            goals.stream().map(GoalDefinition::getId).collect(Collectors.toList()));
     }
 
     static GoalDefinition load() throws Exception

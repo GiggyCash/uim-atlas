@@ -311,6 +311,8 @@ public class ProductionConstructionCatalogTest
             assertEquals(ProductionSkillCoverageCatalogTest.CATALOG_COUNTS.keySet().stream()
                 .map(name -> "uimatlas/methods/" + name).sorted().collect(Collectors.toList()), catalogs);
             assertTrue(entries.contains("uimatlas/methods/catalogs.txt"));
+            assertTrue(entries.contains("uimatlas/goals/catalogs.txt"));
+            assertTrue(entries.contains("uimatlas/items/catalog-item-ids-1.12.38.txt"));
             try (java.io.BufferedReader index = new java.io.BufferedReader(new InputStreamReader(
                 jar.getInputStream(jar.getJarEntry("uimatlas/methods/catalogs.txt")), StandardCharsets.UTF_8)))
             {

@@ -25,18 +25,25 @@ public final class StrategicDecision
     private static final Set<MethodScorer.Factor> QUEST_EXTERNAL = Set.of(
         SETUP_COST, TRANSITION_COST, INVENTORY_DISRUPTION, RISK, UNCERTAINTY);
 
+    /** Structural closeness to the currently reachable edge of the selected goal graph. */
+    public enum Priority { FRONTIER_HANDOFF, FRONTIER_UNBLOCKER, GOAL_PROGRESS }
+
     @Value
     public static class Candidate
     {
         StrategicAction action;
+        Priority priority;
+        List<GoalState.Check> frontierRequirements;
         double goalProgress;
         Optional<MethodScorer.Score> score;
         Set<MethodScorer.Factor> missingExternalFactors;
 
-        private Candidate(StrategicAction action, double progress, Optional<MethodScorer.Score> score,
-            Set<MethodScorer.Factor> missingExternalFactors)
+        private Candidate(StrategicAction action, Priority priority, List<GoalState.Check> frontierRequirements,
+            double progress, Optional<MethodScorer.Score> score, Set<MethodScorer.Factor> missingExternalFactors)
         {
             this.action = action;
+            this.priority = priority;
+            this.frontierRequirements = List.copyOf(frontierRequirements);
             this.goalProgress = progress;
             this.score = score;
             this.missingExternalFactors = Set.copyOf(missingExternalFactors);
@@ -75,8 +82,10 @@ public final class StrategicDecision
         {
             GoalContext.MethodRelevance match = relevance.get(method.getMethod().getId());
             Optional<MethodScorer.Score> score = method.getScore().map(value -> value.selectFactors(SHARED));
-            candidates.add(new Candidate(new StrategicAction.Method(method, match), match.getGoalProgress(),
-                score, Set.of()));
+            List<GoalState.Check> frontier = frontierRequirements(match, context.getGoalState());
+            Priority priority = frontier.isEmpty() ? Priority.GOAL_PROGRESS : Priority.FRONTIER_UNBLOCKER;
+            candidates.add(new Candidate(new StrategicAction.Method(method, match), priority, frontier,
+                match.getGoalProgress(), score, Set.of()));
         }
         Map<String, GoalState.MilestoneState> milestones = new TreeMap<>();
         context.getGoalState().getMilestones().forEach(value -> milestones.put(value.getMilestone().getId(), value));
@@ -105,13 +114,32 @@ public final class StrategicDecision
             inputs.put(GOAL_PROGRESS, progress);
             Optional<MethodScorer.Score> score = action.isActionable() && missing.isEmpty()
                 ? Optional.of(MethodScorer.weightedScore(inputs, MethodScorer.defaultWeights())) : Optional.empty();
-            candidates.add(new Candidate(action, progress, score, missing));
+            Priority priority = action.getReadiness() == StrategicAction.Readiness.READY_TO_HANDOFF
+                ? Priority.FRONTIER_HANDOFF : Priority.GOAL_PROGRESS;
+            candidates.add(new Candidate(action, priority, List.of(), progress, score, missing));
         }
-        candidates.sort(Comparator.comparingDouble((Candidate value) ->
-            value.getScore().map(MethodScorer.Score::getTotal).orElse(Double.NEGATIVE_INFINITY))
-            .reversed().thenComparing(value -> value.getAction().getKind().name())
+        candidates.sort(Comparator.comparing(Candidate::getPriority)
+            .thenComparing(Comparator.comparingDouble((Candidate value) ->
+                value.getScore().map(MethodScorer.Score::getTotal).orElse(Double.NEGATIVE_INFINITY)).reversed())
+            .thenComparing(value -> value.getAction().getKind().name())
             .thenComparing(value -> value.getAction().getId()));
         return new Result(context, candidates);
+    }
+
+    private List<GoalState.Check> frontierRequirements(GoalContext.MethodRelevance method, GoalState state)
+    {
+        Map<String, GoalState.MilestoneStatus> statuses = state.getMilestones().stream().collect(Collectors.toMap(
+            value -> value.getMilestone().getId(), GoalState.MilestoneState::getStatus));
+        Set<String> blockedFrontier = state.getMilestones().stream()
+            .filter(value -> value.getStatus() == GoalState.MilestoneStatus.BLOCKED)
+            .filter(value -> value.getMilestone().getDependsOn().stream()
+                .allMatch(id -> statuses.get(id) == GoalState.MilestoneStatus.COMPLETE))
+            .map(value -> value.getMilestone().getId()).collect(Collectors.toSet());
+        return method.getMatchedRequirements().stream()
+            .filter(check -> blockedFrontier.contains(check.getScopeId()))
+            .sorted(Comparator.comparing(GoalState.Check::getScopeId)
+                .thenComparing(check -> check.getRequirement().getFact()))
+            .collect(Collectors.toUnmodifiableList());
     }
 
     /** Walk explanations, not eligibility: a completed dependency already proves its earlier prerequisites. */

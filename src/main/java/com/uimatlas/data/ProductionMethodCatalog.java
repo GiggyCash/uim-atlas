@@ -16,6 +16,40 @@ import java.util.Set;
 public final class ProductionMethodCatalog
 {
     private static final String INDEX = "uimatlas/methods/catalogs.txt";
+    private static final String PINNED_ITEMS = "uimatlas/items/catalog-item-ids-1.12.38.txt";
+
+    /** Bundled boundary checked against the pinned public ItemID API and exact production item facts. */
+    public List<MethodDefinition> loadBundled(ClassLoader resources) throws IOException
+    {
+        Set<Integer> ids = new HashSet<>();
+        try (BufferedReader input = reader(resources, PINNED_ITEMS))
+        {
+            String line;
+            while ((line = input.readLine()) != null)
+            {
+                if (!line.matches("0|[1-9][0-9]*"))
+                {
+                    throw new IllegalArgumentException("Invalid pinned item ID: " + line);
+                }
+                try
+                {
+                    if (!ids.add(Integer.parseInt(line)))
+                    {
+                        throw new IllegalArgumentException("Duplicate pinned item ID: " + line);
+                    }
+                }
+                catch (NumberFormatException exception)
+                {
+                    throw new IllegalArgumentException("Invalid pinned item ID: " + line, exception);
+                }
+            }
+        }
+        if (ids.isEmpty())
+        {
+            throw new IllegalArgumentException("Empty pinned item-ID boundary");
+        }
+        return load(resources, ids);
+    }
 
     public List<MethodDefinition> load(ClassLoader resources, Set<Integer> canonicalItemIds) throws IOException
     {
