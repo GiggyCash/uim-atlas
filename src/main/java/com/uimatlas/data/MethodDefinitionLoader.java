@@ -10,12 +10,14 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import static com.uimatlas.data.DefinitionJson.require;
 
-/** Separate, strict entry points for bundled production v3/v4 and synthetic v1. The caller owns the reader. */
+/** Separate, strict entry points for bundled production v3-v5 and synthetic v1. The caller owns the reader. */
 public final class MethodDefinitionLoader
 {
     public List<MethodDefinition> loadSynthetic(Reader input)
@@ -33,10 +35,13 @@ public final class MethodDefinitionLoader
     {
         try
         {
-            DefinitionJson root = DefinitionJson.read(input).fields("schemaVersion", "dataKind", "facts", "methods");
+            DefinitionJson root = DefinitionJson.read(input);
             int schemaVersion = root.integer("schemaVersion", Integer.MAX_VALUE);
-            require(production ? schemaVersion == 3 || schemaVersion == 4 : schemaVersion == 1,
+            require(production ? schemaVersion >= 3 && schemaVersion <= 5 : schemaVersion == 1,
                 "$.schemaVersion: unsupported version");
+            root.fields(production && schemaVersion == 5
+                ? new String[] {"schemaVersion", "dataKind", "facts", "requirementGroups", "methods"}
+                : new String[] {"schemaVersion", "dataKind", "facts", "methods"});
             String kind = production ? "PRODUCTION" : "SYNTHETIC_TEST_ONLY";
             require(root.text("dataKind").equals(kind), "$.dataKind: expected " + kind);
             if (production)
@@ -64,10 +69,20 @@ public final class MethodDefinitionLoader
                 require(facts.add(id), fact.at("id") + ": duplicate fact ID");
                 return id;
             });
+            Map<String, MethodDefinition.RequirementGroup> requirementGroups = production && schemaVersion == 5
+                ? requirementGroups(root, facts) : Map.of();
             Set<String> ids = new HashSet<>();
             List<MethodDefinition> methods = root.list("methods",
-                method -> parseMethod(method, facts, ids, production, schemaVersion));
+                method -> parseMethod(method, facts, ids, production, schemaVersion, requirementGroups));
             require(!methods.isEmpty(), "$.methods: expected at least one method");
+            if (production && schemaVersion == 5)
+            {
+                Set<String> referenced = methods.stream()
+                    .flatMap(method -> method.getPreparationAnyOf().stream())
+                    .map(MethodDefinition.RequirementGroup::getId).collect(java.util.stream.Collectors.toSet());
+                require(referenced.equals(requirementGroups.keySet()),
+                    "$.requirementGroups: every declared group must be referenced");
+            }
             return methods;
         }
         catch (IOException exception)
@@ -77,7 +92,7 @@ public final class MethodDefinitionLoader
     }
 
     private MethodDefinition parseMethod(DefinitionJson method, Set<String> facts, Set<String> ids,
-        boolean production, int schemaVersion)
+        boolean production, int schemaVersion, Map<String, MethodDefinition.RequirementGroup> requirementGroups)
     {
         List<String> fields = new ArrayList<>(Arrays.asList("id", "displayName", "category", "activity", "start", "hardRequirements", "preparation",
             "freeInventorySlots", "setupItems", "consumes", "produces", "stopConditions", "style", "xpRate", "costs", "danger", "reason"));
@@ -85,6 +100,10 @@ public final class MethodDefinitionLoader
         {
             fields.remove("xpRate");
             fields.addAll(List.of("optionalSetup", "sources", "workingCapacity", "efficiencyProfiles"));
+            if (schemaVersion == 5)
+            {
+                fields.add("preparationAnyOf");
+            }
         }
         method.fields(fields.toArray(new String[0]));
         String id = identifier(method, "id");
@@ -93,6 +112,9 @@ public final class MethodDefinitionLoader
         require(ids.add(id), method.at("id") + ": duplicate method ID");
         String name = method.text("displayName");
         require(production || name.startsWith("Synthetic "), method.at("displayName") + ": expected Synthetic label");
+        String activity = method.text("activity");
+        require(!production || activity.matches("[A-Z][A-Z0-9_]*"),
+            method.at("activity") + ": expected uppercase activity identifier");
         DefinitionJson start = method.child("start").fields("location", "contact", "instruction");
         DefinitionJson style = method.child("style").fields("attention", "playStyle", "tickManipulation");
         DefinitionJson costs = method.child("costs").fields("storageUnlockValue", "setupMinutes", "transitionMinutes",
@@ -100,10 +122,17 @@ public final class MethodDefinitionLoader
         List<Requirement> hard = method.list("hardRequirements", value -> requirement(value, facts));
         List<Requirement> prep = method.list("preparation", value -> requirement(value, facts));
         List<Requirement> setup = method.list("setupItems", value -> quantityRequirement(value, facts));
-        boolean resourceFlow = production && schemaVersion == 4;
-        List<Requirement> consumes = method.list("consumes", value -> quantityRequirement(value, facts, resourceFlow));
+        boolean flowShape = production && schemaVersion >= 4;
+        List<Requirement> consumes = method.list("consumes", value -> quantityRequirement(value, facts, flowShape));
         List<MethodDefinition.ResourceAmount> produces = method.list("produces",
-            value -> resource(value, facts, resourceFlow));
+            value -> resource(value, facts, flowShape));
+        if (flowShape)
+        {
+            require(produces.isEmpty() || !consumes.isEmpty(), method.at("produces")
+                + ": resource flow outputs require at least one input");
+            require(schemaVersion != 4 || consumes.isEmpty() == produces.isEmpty(), method.at("consumes")
+                + ": schema v4 resource flow requires both inputs and outputs, or neither");
+        }
         Requirement slots = requirement(method.child("freeInventorySlots"), facts);
         require(slots.getFact().equals("inventory.free_slots") && slots.getComparison() == Requirement.Comparison.AT_LEAST
             && slots.getTarget() == Math.rint(slots.getTarget()), method.at("freeInventorySlots") + ": expected integer free-slot minimum");
@@ -120,6 +149,17 @@ public final class MethodDefinitionLoader
         List<Requirement> stops = method.list("stopConditions", value -> requirement(value, facts));
         require(!stops.isEmpty(), method.at("stopConditions") + ": expected at least one stop condition");
         List<Requirement> optional = production ? method.list("optionalSetup", value -> requirement(value, facts)) : List.of();
+        Set<String> referencedGroups = new HashSet<>();
+        List<MethodDefinition.RequirementGroup> preparationAnyOf = production && schemaVersion == 5
+            ? method.list("preparationAnyOf", reference ->
+            {
+                reference.fields("group");
+                String groupId = identifier(reference, "group");
+                MethodDefinition.RequirementGroup group = requirementGroups.get(groupId);
+                require(group != null, reference.at("group") + ": unresolved requirement-group ID " + groupId);
+                require(referencedGroups.add(groupId), reference.at("group") + ": duplicate requirement-group reference");
+                return group;
+            }) : List.of();
         Set<String> requiredFacts = new HashSet<>(prepFacts);
         hard.forEach(value -> requiredFacts.add(value.getFact()));
         for (Requirement value : optional)
@@ -129,7 +169,7 @@ public final class MethodDefinitionLoader
         }
         List<MethodDefinition.Source> sources = production ? method.list("sources", this::source) : List.of();
         require(!production || !sources.isEmpty(), method.at("sources") + ": production requires source metadata");
-        return new MethodDefinition(id, name, method.text("category"), method.text("activity"),
+        return new MethodDefinition(id, name, method.text("category"), activity,
             new MethodDefinition.Start(start.text("location"), start.text("contact"), start.text("instruction")),
             hard, prep, slots, setup, consumes, produces, stops,
             new MethodDefinition.Style(style.number("attention", 0, 1), style.text("playStyle"), style.bool("tickManipulation")),
@@ -140,9 +180,45 @@ public final class MethodDefinitionLoader
             production ? MethodDefinition.DataKind.PRODUCTION : MethodDefinition.DataKind.SYNTHETIC_TEST_ONLY, optional, sources,
             production ? diagnosticRequirements(method, "workingCapacity", facts) : List.of(),
             production ? profiles(method, facts) : List.of(),
-            resourceFlow ? Optional.of(ResourceFlowJson.parse(method, facts, slots,
+            flowShape && !consumes.isEmpty() ? Optional.of(ResourceFlowJson.parse(method, facts, slots,
                 value -> quantityRequirement(value, facts, true), value -> resource(value, facts, true)))
-                : Optional.empty());
+                : Optional.empty(), preparationAnyOf);
+    }
+
+    private Map<String, MethodDefinition.RequirementGroup> requirementGroups(DefinitionJson root, Set<String> facts)
+    {
+        Map<String, MethodDefinition.RequirementGroup> groups = new LinkedHashMap<>();
+        root.list("requirementGroups", group ->
+        {
+            group.fields("id", "description", "alternatives");
+            String groupId = identifier(group, "id");
+            require(groupId.startsWith("requirement_group."), group.at("id") + ": expected requirement_group. prefix");
+            require(!groups.containsKey(groupId), group.at("id") + ": duplicate requirement-group ID");
+            Set<String> alternativeIds = new HashSet<>();
+            List<MethodDefinition.RequirementGroup.Alternative> alternatives = group.list("alternatives", alternative ->
+            {
+                alternative.fields("id", "requirements");
+                String alternativeId = identifier(alternative, "id");
+                require(alternativeId.startsWith("alternative."), alternative.at("id") + ": expected alternative. prefix");
+                require(alternativeIds.add(alternativeId), alternative.at("id") + ": duplicate alternative ID");
+                Set<String> seen = new HashSet<>();
+                List<Requirement> requirements = alternative.list("requirements", value ->
+                {
+                    Requirement requirement = requirement(value, facts);
+                    require(!requirement.isSafetyRelevant(), value.at("safetyRelevant") + ": preparation alternatives cannot be safety gates");
+                    require(seen.add(requirement.getFact()), value.at("fact") + ": duplicate alternative fact");
+                    return requirement;
+                });
+                require(!requirements.isEmpty(), alternative.at("requirements") + ": expected at least one requirement");
+                return new MethodDefinition.RequirementGroup.Alternative(alternativeId, requirements);
+            });
+            require(alternatives.size() >= 2, group.at("alternatives") + ": ANY_OF requires at least two alternatives");
+            MethodDefinition.RequirementGroup value = new MethodDefinition.RequirementGroup(
+                groupId, group.text("description"), alternatives);
+            groups.put(groupId, value);
+            return value;
+        });
+        return Map.copyOf(groups);
     }
 
     private MethodDefinition.XpRate xpRate(DefinitionJson xp)

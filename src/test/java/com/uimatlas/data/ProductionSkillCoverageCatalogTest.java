@@ -21,17 +21,24 @@ import static org.junit.Assert.*;
 
 public class ProductionSkillCoverageCatalogTest
 {
-    static final Map<String, Integer> CATALOG_COUNTS = Map.of(
-        "agility-v1.json", 3, "construction-v1.json", 3, "crafting-v1.json", 3,
-        "fishing-v1.json", 2, "herblore-v1.json", 6, "mining-v1.json", 3);
+    static final Map<String, Integer> CATALOG_COUNTS = Map.ofEntries(
+        Map.entry("agility-v1.json", 3), Map.entry("construction-v1.json", 3),
+        Map.entry("cooking-v1.json", 3), Map.entry("crafting-v1.json", 3),
+        Map.entry("firemaking-v1.json", 2), Map.entry("fishing-v1.json", 2),
+        Map.entry("fletching-v1.json", 2), Map.entry("herblore-v1.json", 6),
+        Map.entry("magic-v1.json", 3), Map.entry("mining-v1.json", 3),
+        Map.entry("ranged-v1.json", 2), Map.entry("smithing-v1.json", 3),
+        Map.entry("thieving-v1.json", 3), Map.entry("woodcutting-v1.json", 3));
     static final Set<String> FAMILIES = Set.of("AGILITY", "CRAFTING", "FISHING", "MINING");
+    static final Set<String> V2_FAMILIES = Set.of("COOKING", "THIEVING", "MAGIC", "SMITHING",
+        "FIREMAKING", "RANGED", "FLETCHING", "WOODCUTTING");
     private static final String PREFIX = "uimatlas/methods/";
 
     @Test
     public void exactReviewedPackLoadsThroughGenericProductionIndex() throws Exception
     {
         List<MethodDefinition> methods = load();
-        assertEquals(20, methods.size());
+        assertEquals(41, methods.size());
         List<MethodDefinition> pack = methods.stream().filter(m -> FAMILIES.contains(m.getActivity()))
             .collect(Collectors.toList());
         assertEquals(11, pack.size());
@@ -62,12 +69,13 @@ public class ProductionSkillCoverageCatalogTest
     @Test
     public void eachNewCatalogRejectsBadFactsRangesSourcesAndProfiles() throws Exception
     {
-        for (String family : FAMILIES)
+        for (String family : Stream.concat(FAMILIES.stream(), V2_FAMILIES.stream()).collect(Collectors.toSet()))
         {
             String file = family.toLowerCase(java.util.Locale.ROOT) + "-v1.json";
             reject(file, root -> root.addProperty("unrecognized", true));
             reject(file, root -> root.getAsJsonArray("methods").add(first(root).deepCopy()));
             reject(file, root -> root.getAsJsonArray("facts").get(0).getAsJsonObject().addProperty("id", "bad fact"));
+            reject(file, root -> first(root).addProperty("activity", "bad activity"));
             reject(file, root -> first(root).getAsJsonArray("hardRequirements").get(0)
                 .getAsJsonObject().addProperty("target", 100));
             reject(file, root -> first(root).getAsJsonArray("hardRequirements").get(0)
@@ -132,7 +140,8 @@ public class ProductionSkillCoverageCatalogTest
     @Test
     public void productionJavaContainsNoPackKnowledge() throws Exception
     {
-        List<MethodDefinition> methods = load().stream().filter(m -> FAMILIES.contains(m.getActivity()))
+        Set<String> families = Stream.concat(FAMILIES.stream(), V2_FAMILIES.stream()).collect(Collectors.toSet());
+        List<MethodDefinition> methods = load().stream().filter(m -> families.contains(m.getActivity()))
             .collect(Collectors.toList());
         try (Stream<Path> sources = Files.walk(Path.of("src/main/java")))
         {
@@ -144,7 +153,7 @@ public class ProductionSkillCoverageCatalogTest
                     assertFalse(path.toString(), text.contains(method.getId()));
                     assertFalse(path.toString(), text.contains(method.getDisplayName()));
                 }
-                for (String skill : FAMILIES)
+                for (String skill : families)
                 {
                     assertFalse(path.toString(), text.contains("\"" + skill + "\""));
                     assertFalse(path.toString(), text.contains("skill." + skill.toLowerCase(java.util.Locale.ROOT) + "."));

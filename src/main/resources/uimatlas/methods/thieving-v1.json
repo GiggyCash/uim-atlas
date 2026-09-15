@@ -1,0 +1,60 @@
+{
+  "schemaVersion":5,
+  "dataKind":"PRODUCTION",
+  "facts":[
+    {"id":"carried.item.1523.quantity"}, {"id":"carried.item.11682.quantity"},
+    {"id":"inventory.free_slots"}, {"id":"skill.thieving.level"}
+  ],
+  "requirementGroups":[{
+    "id":"requirement_group.thieving.artefact_drawer_tool",
+    "description":"One currently carried lockpick or hair clip that can open the assigned artefact drawer.",
+    "alternatives":[
+      {"id":"alternative.thieving.lockpick","requirements":[{"fact":"carried.item.1523.quantity","comparison":"AT_LEAST","target":1,"description":"One exact lockpick currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.thieving.hair_clip","requirements":[{"fact":"carried.item.11682.quantity","comparison":"AT_LEAST","target":1,"description":"One exact King's Ransom hair clip currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]}
+    ]
+  }],
+  "methods":[
+    {
+      "id":"method.thieving.east_ardougne_cake_stall","displayName":"Steal from the East Ardougne cake stall","category":"TRAINING","activity":"THIEVING",
+      "start":{"location":"East Ardougne market","contact":"Bakery stall safespot","instruction":"Steal from the bakery stall while positioned in the documented safespot. Recheck when inventory fills; no future food use or disposal is assumed."},
+      "hardRequirements":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":5,"description":"Unboosted level 5 required to steal from a bakery stall.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[], "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next successful stall item.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],"consumes":[],"produces":[],
+      "stopConditions":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":25,"description":"Re-evaluate at the fruit-stall tier or selected goal boundary.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.free_slots","comparison":"AT_MOST","target":0,"description":"Pause when ordinary inventory fills.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.65,"playStyle":"Low-setup stall training","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.1,"assumptions":"The safespot avoids guard engagement when used correctly. Loot handling after inventory fills is outside this record."},
+      "danger":"LOW","reason":"A broadly available low-level method with no required equipment or food assumption.",
+      "optionalSetup":[],"workingCapacity":[],"efficiencyProfiles":[{"id":"profile.thieving.east_ardougne_cake_stall.ordinary","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for a successful steal.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.3,"notes":"Editorial value for a verified one-slot stall start; no indefinite inventory or food plan."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Thieving","reviewedAt":"2026-09-14","notes":"The UIM guide describes Thieving as low preparation and early cake-stall training as useful for UIM accounts."},{"url":"https://oldschool.runescape.wiki/w/Cake_stall","reviewedAt":"2026-09-14","notes":"Level 5 and the East Ardougne safespot were reviewed; stall output is variable and therefore has no bounded flow."}],
+      "preparationAnyOf":[]
+    },
+    {
+      "id":"method.thieving.hosidius_fruit_stalls","displayName":"Steal from the eastern Hosidius fruit stalls","category":"TRAINING","activity":"THIEVING",
+      "start":{"location":"Eastern Hosidius beach house","contact":"Two fruit stalls without nearby guard dogs","instruction":"Alternate between the two stalls and pause when inventory fills. Eating or dropping fruit and run-energy support are not assumed."},
+      "hardRequirements":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":25,"description":"Unboosted level 25 required to steal from fruit stalls.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next random fruit output.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],"consumes":[],"produces":[],
+      "stopConditions":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":49,"description":"Re-evaluate at the stealing-artefacts tier or selected goal boundary.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.free_slots","comparison":"AT_MOST","target":0,"description":"Pause when ordinary inventory fills.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.65,"playStyle":"Active low-setup training","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.15,"assumptions":"The eastern house avoids nearby guard dogs. Random fruit and later handling are not modeled."},
+      "danger":"LOW","reason":"A no-equipment UIM method with a real level distinction and modest starting footprint.",
+      "optionalSetup":[],"workingCapacity":[],"efficiencyProfiles":[{"id":"profile.thieving.hosidius_fruit_stalls.ordinary","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next fruit.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.45,"notes":"Editorial value for the guard-dog-free two-stall location; no drop/eat loop or hourly rate."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Thieving","reviewedAt":"2026-09-14","notes":"The UIM guide supports low-inventory Thieving and early stall training."},{"url":"https://oldschool.runescape.wiki/w/Thieving_training","reviewedAt":"2026-09-14","notes":"Level 25 and the eastern two-stall location without nearby guard dogs were reviewed; former Kourend favour is no longer a requirement."}],
+      "preparationAnyOf":[]
+    },
+    {
+      "id":"method.thieving.stealing_artefacts","displayName":"Steal artefacts in Port Piscarilius","category":"TRAINING","activity":"THIEVING",
+      "start":{"location":"Port Piscarilius foodhall","contact":"Captain Khaled","instruction":"Accept one assignment, open the assigned drawer with a verified tool, and return the artefact on foot. Teleport support and run-energy aids are optional."},
+      "hardRequirements":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":49,"description":"Unboosted level 49 required to steal artefacts.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the assigned stolen artefact.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],"consumes":[],"produces":[],
+      "stopConditions":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":53,"description":"Re-evaluate at the current RFD unboosted Thieving target.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.45,"playStyle":"Mobile training with side-activity room","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.1,"assumptions":"One assignment is scoped. Guard lures, energy restoration and teleport optimizations are not prerequisites or scored benefits."},
+      "danger":"LOW","reason":"A higher-level UIM method that leaves room for stackable side activities and needs only one verified drawer tool.",
+      "optionalSetup":[],"workingCapacity":[],"efficiencyProfiles":[{"id":"profile.thieving.stealing_artefacts.ordinary","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the assigned artefact.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.6,"notes":"Editorial value for a ready one-assignment start. Energy and teleport support remain optional; no published optimized rate is used."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Thieving","reviewedAt":"2026-09-14","notes":"The UIM guide recommends artefacts as a less click-intensive method that can pair with portable skilling."},{"url":"https://oldschool.runescape.wiki/w/Stealing_artefacts","reviewedAt":"2026-09-14","notes":"Level 49, Captain Khaled, one lockpick or hair clip, artefact slot, patrol behavior and no remaining favour gate were reviewed."},{"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact lockpick and King's Ransom hair-clip identities use pinned public gameval constants."}],
+      "preparationAnyOf":[{"group":"requirement_group.thieving.artefact_drawer_tool"}]
+    }
+  ]
+}

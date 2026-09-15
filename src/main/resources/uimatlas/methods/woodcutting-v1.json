@@ -1,0 +1,66 @@
+{
+  "schemaVersion":5,
+  "dataKind":"PRODUCTION",
+  "facts":[
+    {"id":"carried.item.1349.quantity"},{"id":"carried.item.1351.quantity"},{"id":"carried.item.1353.quantity"},
+    {"id":"carried.item.1355.quantity"},{"id":"carried.item.1357.quantity"},{"id":"carried.item.1359.quantity"},{"id":"carried.item.1361.quantity"},
+    {"id":"inventory.free_slots"},{"id":"skill.woodcutting.level"}
+  ],
+  "requirementGroups":[{
+    "id":"requirement_group.woodcutting.usable_ordinary_axe",
+    "description":"One currently carried ordinary axe whose exact Woodcutting level requirement is met.",
+    "alternatives":[
+      {"id":"alternative.woodcutting.bronze_axe","requirements":[{"fact":"carried.item.1351.quantity","comparison":"AT_LEAST","target":1,"description":"One exact bronze axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":1,"description":"Level 1 Woodcutting required to use a bronze axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.woodcutting.iron_axe","requirements":[{"fact":"carried.item.1349.quantity","comparison":"AT_LEAST","target":1,"description":"One exact iron axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":1,"description":"Level 1 Woodcutting required to use an iron axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.woodcutting.steel_axe","requirements":[{"fact":"carried.item.1353.quantity","comparison":"AT_LEAST","target":1,"description":"One exact steel axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":6,"description":"Level 6 Woodcutting required to use a steel axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.woodcutting.black_axe","requirements":[{"fact":"carried.item.1361.quantity","comparison":"AT_LEAST","target":1,"description":"One exact black axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":11,"description":"Level 11 Woodcutting required to use a black axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.woodcutting.mithril_axe","requirements":[{"fact":"carried.item.1355.quantity","comparison":"AT_LEAST","target":1,"description":"One exact mithril axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":21,"description":"Level 21 Woodcutting required to use a mithril axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.woodcutting.adamant_axe","requirements":[{"fact":"carried.item.1357.quantity","comparison":"AT_LEAST","target":1,"description":"One exact adamant axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":31,"description":"Level 31 Woodcutting required to use an adamant axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]},
+      {"id":"alternative.woodcutting.rune_axe","requirements":[{"fact":"carried.item.1359.quantity","comparison":"AT_LEAST","target":1,"description":"One exact rune axe currently carried.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":41,"description":"Level 41 Woodcutting required to use a rune axe.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}]}
+    ]
+  }],
+  "methods":[
+    {
+      "id":"method.woodcutting.regular_trees_lumbridge","displayName":"Cut regular trees around Lumbridge","category":"GATHERING","activity":"WOODCUTTING",
+      "start":{"location":"Lumbridge surface","contact":"Regular trees","instruction":"Cut a nearby regular tree with one verified usable carried axe. Pause when inventory fills; no dropping, burning or future tool purchase is assumed."},
+      "hardRequirements":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":1,"description":"Unboosted level 1 required to cut regular trees.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next regular log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],"consumes":[],"produces":[],
+      "stopConditions":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":15,"description":"Re-evaluate at the oak-tree tier or selected goal boundary.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.free_slots","comparison":"AT_MOST","target":0,"description":"Pause when ordinary inventory fills.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.55,"playStyle":"Broadly available tree cutting","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.1,"assumptions":"Only the next successful log and current capacity are scoped; dropping, burning and tool acquisition are outside this record."},
+      "danger":"LOW","reason":"A broad low-level Woodcutting start when one exact carried axe is demonstrably usable.",
+      "optionalSetup":[],"workingCapacity":[],"efficiencyProfiles":[{"id":"profile.woodcutting.regular_trees_lumbridge.ordinary","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.25,"notes":"Editorial low-tier value for a verified one-log start; no tool-tier or hourly-rate benefit."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Woodcutting","reviewedAt":"2026-09-14","notes":"The UIM guide supports ordinary tree cutting as early training and treats later log handling as a separate choice."},{"url":"https://oldschool.runescape.wiki/w/Woodcutting","reviewedAt":"2026-09-14","notes":"Regular-tree level and ordinary axe use requirements were reviewed."},{"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact ordinary axe identities use pinned public gameval constants."}],
+      "preparationAnyOf":[{"group":"requirement_group.woodcutting.usable_ordinary_axe"}]
+    },
+    {
+      "id":"method.woodcutting.oak_trees_draynor","displayName":"Cut oak trees in Draynor Village","category":"GATHERING","activity":"WOODCUTTING",
+      "start":{"location":"Draynor Village","contact":"Oak trees","instruction":"Cut oak trees normally with one verified usable carried axe. Pause when inventory fills; no dropping, Firemaking or Construction handoff is assumed."},
+      "hardRequirements":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":15,"description":"Unboosted level 15 required to cut oak trees.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next oak log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],"consumes":[],"produces":[],
+      "stopConditions":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":35,"description":"Re-evaluate at the teak-tree tier or selected goal boundary.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.free_slots","comparison":"AT_MOST","target":0,"description":"Pause when ordinary inventory fills.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.35,"playStyle":"Relaxed tree cutting","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.1,"assumptions":"Only current access, one output position and a usable carried axe are modeled; log disposal or processing is not inferred."},
+      "danger":"LOW","reason":"The UIM guide's strong relaxed pre-65 option, scoped to current capacity and a proven tool.",
+      "optionalSetup":[],"workingCapacity":[],"efficiencyProfiles":[{"id":"profile.woodcutting.oak_trees_draynor.ordinary","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.45,"notes":"Editorial value for ordinary non-tick oak cutting; no published rate or log-disposal loop."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Woodcutting","reviewedAt":"2026-09-14","notes":"The UIM guide says ordinary oak cutting remains the strongest non-tick option through the relevant range."},{"url":"https://oldschool.runescape.wiki/w/Oak_tree","reviewedAt":"2026-09-14","notes":"Level 15 and ordinary axe requirements were reviewed."},{"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact ordinary axe identities use pinned public gameval constants."}],
+      "preparationAnyOf":[{"group":"requirement_group.woodcutting.usable_ordinary_axe"}]
+    },
+    {
+      "id":"method.woodcutting.teak_castle_wars","displayName":"Cut the teak tree south-west of Castle Wars","category":"GATHERING","activity":"WOODCUTTING",
+      "start":{"location":"South-west of Castle Wars","contact":"Single teak tree","instruction":"Cut the teak tree normally with one verified usable carried axe. This is not a tick-manipulation loop; pause when inventory fills."},
+      "hardRequirements":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":35,"description":"Unboosted level 35 required to cut teak trees.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next teak log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],"consumes":[],"produces":[],
+      "stopConditions":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":36,"description":"Re-evaluate at the current RFD unboosted Woodcutting target.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.free_slots","comparison":"AT_MOST","target":0,"description":"Pause when ordinary inventory fills.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.55,"playStyle":"Focused single-tree cutting","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.1,"assumptions":"One broadly reachable tree is selected to avoid quest, farming and tick-manipulation assumptions. Later log use is outside this record."},
+      "danger":"LOW","reason":"A higher-tier one-level finish for the RFD requirement without a quest, farming, or tick-manipulation gate.",
+      "optionalSetup":[],"workingCapacity":[],"efficiencyProfiles":[{"id":"profile.woodcutting.teak_castle_wars.ordinary","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.5,"notes":"Editorial value for ordinary single-tree teak cutting; optimized multi-tree tick methods are excluded."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Woodcutting","reviewedAt":"2026-09-14","notes":"The UIM guide identifies teak trees from level 35 and separates faster tick-manipulation locations from ordinary cutting."},{"url":"https://oldschool.runescape.wiki/w/Tree_cutting_guide","reviewedAt":"2026-09-14","notes":"The broadly reachable single teak tree south-west of Castle Wars was reviewed."},{"url":"https://oldschool.runescape.wiki/w/Teak_tree","reviewedAt":"2026-09-14","notes":"Level 35 and ordinary axe requirements were reviewed."},{"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact ordinary axe identities use pinned public gameval constants."}],
+      "preparationAnyOf":[{"group":"requirement_group.woodcutting.usable_ordinary_axe"}]
+    }
+  ]
+}

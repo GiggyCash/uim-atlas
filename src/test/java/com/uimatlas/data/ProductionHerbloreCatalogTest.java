@@ -73,8 +73,8 @@ public class ProductionHerbloreCatalogTest
         mutate(root -> consume(root).addProperty("target", 29), "per-unit slot quantity exceeds inventory capacity");
         mutate(root -> output(root).addProperty("quantity", 0), "number out of range");
         mutate(root -> output(root).addProperty("quantity", 1.5), "positive integer");
-        mutate(root -> first(root).add("produces", new com.google.gson.JsonArray()),
-            "requires inputs, outputs");
+        mutate(root -> first(root).add("consumes", new com.google.gson.JsonArray()),
+            "outputs require at least one input");
         mutate(root -> output(root).addProperty("resourceId", consume(root).get("fact").getAsString()),
             "Overlapping or duplicate");
         mutate(root -> first(root).getAsJsonArray("consumes").add(consume(root).deepCopy()),

@@ -1,6 +1,14 @@
 uimatlas/methods/agility-v1.json
 uimatlas/methods/construction-v1.json
+uimatlas/methods/cooking-v1.json
 uimatlas/methods/crafting-v1.json
+uimatlas/methods/firemaking-v1.json
 uimatlas/methods/fishing-v1.json
+uimatlas/methods/fletching-v1.json
 uimatlas/methods/herblore-v1.json
+uimatlas/methods/magic-v1.json
 uimatlas/methods/mining-v1.json
+uimatlas/methods/ranged-v1.json
+uimatlas/methods/smithing-v1.json
+uimatlas/methods/thieving-v1.json
+uimatlas/methods/woodcutting-v1.json

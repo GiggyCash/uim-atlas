@@ -77,20 +77,34 @@ public final class SetupScoringInputs
         requirements.add(method.getFreeInventorySlots());
         requirements.sort(Comparator.comparing(Requirement::getFact));
         Map<String, Observation<Double>> observations = new TreeMap<>();
+        FactLookup snapshot = fact -> observations.computeIfAbsent(fact, id ->
+        {
+            Observation<Double> value = facts.get(id);
+            return value == null ? Observation.unknown() : value;
+        });
         List<Requirement> unresolved = new ArrayList<>();
         for (Requirement requirement : requirements)
         {
-            Observation<Double> observation = observations.computeIfAbsent(requirement.getFact(), fact ->
-            {
-                Observation<Double> value = facts.get(fact);
-                return value == null ? Observation.unknown() : value;
-            });
+            Observation<Double> observation = snapshot.get(requirement.getFact());
             // Reuse the predicate's confidence, age and numeric checks, including known absence.
             if (requirement.evaluate(observation, now) == Requirement.Result.UNKNOWN)
             {
                 unresolved.add(requirement);
             }
         }
+        MethodEvaluator.Evaluation evaluation = new MethodEvaluator().evaluate(method, snapshot, now);
+        evaluation.getPreparationAnyOf().stream()
+            .filter(check -> check.getResult() == MethodEvaluator.GroupResult.UNKNOWN)
+            .flatMap(check -> check.getAlternatives().stream())
+            .flatMap(check -> check.getUnknownRequirements().stream())
+            .sorted(Comparator.comparing(Requirement::getFact))
+            .forEach(requirement ->
+            {
+                if (unresolved.stream().noneMatch(value -> value.getFact().equals(requirement.getFact())))
+                {
+                    unresolved.add(requirement);
+                }
+            });
         Requirement slots = method.getFreeInventorySlots();
         Observation<Double> free = observations.get(slots.getFact());
         if (slots.getComparison() != Requirement.Comparison.AT_LEAST
@@ -115,6 +129,7 @@ public final class SetupScoringInputs
         }
         if (!unresolved.isEmpty())
         {
+            unresolved.sort(Comparator.comparing(Requirement::getFact));
             return new Result(null, unresolved, observations);
         }
 
@@ -126,7 +141,9 @@ public final class SetupScoringInputs
         long missingPrep = method.getPreparation().stream()
             .filter(requirement -> requirement.evaluate(observations.get(requirement.getFact()), now)
                 == Requirement.Result.MISSING).count();
-        double burden = deficits + missingPrep;
+        long missingGroups = evaluation.getPreparationAnyOf().stream()
+            .filter(check -> check.getResult() == MethodEvaluator.GroupResult.MISSING).count();
+        double burden = deficits + missingPrep + missingGroups;
         double slotShortfall = Math.max(0, slots.getTarget() - free.getValue()) / INVENTORY_CAPACITY;
         double occupancy = (INVENTORY_CAPACITY - free.getValue()) / INVENTORY_CAPACITY;
         MethodDefinition.Costs costs = method.getCosts();

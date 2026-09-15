@@ -79,7 +79,12 @@ public class SkillCoverageReadinessTest
         assertEquals(MethodEvaluator.Status.UNKNOWN, evaluate(star, facts).getStatus());
         facts = readyFacts(star);
         facts.put("carried.item.1275.quantity", known(1));
-        facts.remove("capability.tool.usable_pickaxe");
+        assertEquals(MethodEvaluator.Status.AVAILABLE, evaluate(star, facts).getStatus());
+        for (MethodDefinition.RequirementGroup.Alternative alternative
+            : star.getPreparationAnyOf().get(0).getAlternatives())
+        {
+            facts.remove(alternative.getRequirements().get(0).getFact());
+        }
         assertEquals(MethodEvaluator.Status.UNKNOWN, evaluate(star, facts).getStatus());
     }
 
@@ -163,6 +168,8 @@ public class SkillCoverageReadinessTest
     private static Map<String, Observation<Double>> readyFacts(MethodDefinition method)
     {
         Map<String, Observation<Double>> facts = new HashMap<>();
+        method.getPreparationAnyOf().forEach(group -> group.getAlternatives().get(0).getRequirements()
+            .forEach(r -> facts.put(r.getFact(), known(r.getTarget()))));
         method.getHardRequirements().forEach(r -> facts.put(r.getFact(), known(r.getTarget())));
         preparation(method).forEach(r -> facts.put(r.getFact(), known(r.getTarget())));
         return facts;

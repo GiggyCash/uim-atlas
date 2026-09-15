@@ -52,6 +52,7 @@ public class MethodDefinition
     List<Requirement> workingCapacity;
     List<EfficiencyProfile> efficiencyProfiles;
     Optional<ResourceFlow> resourceFlow;
+    List<RequirementGroup> preparationAnyOf;
 
     public MethodDefinition(String id, String displayName, String category, String activity, Start start,
         List<Requirement> hardRequirements, List<Requirement> preparation, Requirement freeInventorySlots,
@@ -83,7 +84,7 @@ public class MethodDefinition
     {
         this(id, displayName, category, activity, start, hardRequirements, preparation, freeInventorySlots,
             setupItems, consumes, produces, stopConditions, style, xpRate, costs, danger, reason,
-            dataKind, optionalSetup, sources, workingCapacity, efficiencyProfiles, Optional.empty());
+            dataKind, optionalSetup, sources, workingCapacity, efficiencyProfiles, Optional.empty(), List.of());
     }
 
     public MethodDefinition(String id, String displayName, String category, String activity, Start start,
@@ -92,7 +93,7 @@ public class MethodDefinition
         List<Requirement> stopConditions, Style style, XpRate xpRate, Costs costs, Danger danger, String reason,
         DataKind dataKind, List<Requirement> optionalSetup, List<Source> sources,
         List<Requirement> workingCapacity, List<EfficiencyProfile> efficiencyProfiles,
-        Optional<ResourceFlow> resourceFlow)
+        Optional<ResourceFlow> resourceFlow, List<RequirementGroup> preparationAnyOf)
     {
         this.id = id;
         this.displayName = displayName;
@@ -117,6 +118,35 @@ public class MethodDefinition
         this.workingCapacity = List.copyOf(workingCapacity);
         this.efficiencyProfiles = List.copyOf(efficiencyProfiles);
         this.resourceFlow = resourceFlow;
+        this.preparationAnyOf = List.copyOf(preparationAnyOf);
+    }
+
+    @Value
+    public static class RequirementGroup
+    {
+        String id;
+        String description;
+        List<Alternative> alternatives;
+
+        public RequirementGroup(String id, String description, List<Alternative> alternatives)
+        {
+            this.id = id;
+            this.description = description;
+            this.alternatives = List.copyOf(alternatives);
+        }
+
+        @Value
+        public static class Alternative
+        {
+            String id;
+            List<Requirement> requirements;
+
+            public Alternative(String id, List<Requirement> requirements)
+            {
+                this.id = id;
+                this.requirements = List.copyOf(requirements);
+            }
+        }
     }
 
     @Value

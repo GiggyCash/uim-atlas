@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.Value;
 
-/** A bounded, consume-then-produce inventory transformation for one declared batch. */
+/** A bounded inventory transformation or resource sink for one declared batch. */
 @Value
 public class ResourceFlow
 {
@@ -96,9 +96,9 @@ public class ResourceFlow
 
     public ResourceFlow(List<Entry> inputs, List<Entry> outputs, Requirement freeSlots)
     {
-        if (inputs.isEmpty() || outputs.isEmpty() || !freeSlots.getFact().equals("inventory.free_slots"))
+        if (inputs.isEmpty() || !freeSlots.getFact().equals("inventory.free_slots"))
         {
-            throw new IllegalArgumentException("Resource flow requires inputs, outputs and inventory.free_slots");
+            throw new IllegalArgumentException("Resource flow requires inputs and inventory.free_slots");
         }
         Set<String> facts = new HashSet<>();
         for (Entry entry : inputs)

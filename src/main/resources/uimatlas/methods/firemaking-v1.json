@@ -1,0 +1,50 @@
+{
+  "schemaVersion":5,
+  "dataKind":"PRODUCTION",
+  "facts":[
+    {"id":"inventory.free_slots"},
+    {"id":"inventory.item.590.quantity"},
+    {"id":"inventory.item.1511.quantity"},{"id":"inventory.item.1511.occupied_slots"},
+    {"id":"inventory.item.1521.quantity"},{"id":"inventory.item.1521.occupied_slots"},
+    {"id":"skill.firemaking.level"}
+  ],
+  "requirementGroups":[],
+  "methods":[
+    {
+      "id":"method.firemaking.carried_regular_logs","displayName":"Burn carried regular logs","category":"PROCESSING","activity":"FIREMAKING",
+      "start":{"location":"A clear safe east-west line","contact":"Carried regular logs","instruction":"Light one exact carried regular log with the carried tinderbox. Continue only while the nearby line remains clear; no future logs or disposal are assumed."},
+      "hardRequirements":[{"fact":"skill.firemaking.level","comparison":"AT_LEAST","target":1,"description":"Unboosted level 1 required to light regular logs.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],
+      "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No additional ordinary position: the scoped action consumes one carried log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[{"fact":"inventory.item.590.quantity","comparison":"AT_LEAST","target":1,"description":"One exact tinderbox in inventory.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "consumes":[{"fact":"inventory.item.1511.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried regular log for one lighting action.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false,"slotSemantics":"ONE_SLOT_PER_UNIT"}],
+      "produces":[],
+      "stopConditions":[{"fact":"skill.firemaking.level","comparison":"AT_LEAST","target":15,"description":"Re-evaluate at the oak-log tier or selected goal boundary.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.item.1511.quantity","comparison":"AT_MOST","target":0,"description":"Recheck when carried regular logs are exhausted.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.65,"playStyle":"Carried-resource line fires","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0,"assumptions":"One lighting action is modeled. Terrain, future log acquisition and a sustained line are not inferred."},
+      "danger":"LOW","reason":"A bounded early Firemaking action that uses only a verified tinderbox and carried log.",
+      "optionalSetup":[],"workingCapacity":[],
+      "efficiencyProfiles":[{"id":"profile.firemaking.carried_regular_logs.single","priority":0,"requirements":[{"fact":"inventory.item.590.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried tinderbox.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.item.1511.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried regular log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.3,"notes":"Editorial value for one verified low-level lighting action; no hourly rate or resupply."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ironman_Guide/Firemaking","reviewedAt":"2026-09-14","notes":"The iron-account guide recommends burning regular logs to level 15 before oak logs."},{"url":"https://oldschool.runescape.wiki/w/Firemaking","reviewedAt":"2026-09-14","notes":"Level 1, tinderbox use and the regular-log lighting action were reviewed."},{"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact tinderbox and regular-log identities use pinned public gameval constants."}],
+      "preparationAnyOf":[]
+    },
+    {
+      "id":"method.firemaking.carried_oak_logs","displayName":"Burn carried oak logs","category":"PROCESSING","activity":"FIREMAKING",
+      "start":{"location":"A clear safe east-west line","contact":"Carried oak logs","instruction":"Light one exact carried oak log with the carried tinderbox. Continue only while the nearby line remains clear; no woodcutting, future logs or disposal are assumed."},
+      "hardRequirements":[{"fact":"skill.firemaking.level","comparison":"AT_LEAST","target":15,"description":"Unboosted level 15 required to light oak logs.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],
+      "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No additional ordinary position: the scoped action consumes one carried log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[{"fact":"inventory.item.590.quantity","comparison":"AT_LEAST","target":1,"description":"One exact tinderbox in inventory.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "consumes":[{"fact":"inventory.item.1521.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried oak log for one lighting action.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false,"slotSemantics":"ONE_SLOT_PER_UNIT"}],
+      "produces":[],
+      "stopConditions":[{"fact":"skill.firemaking.level","comparison":"AT_LEAST","target":50,"description":"Re-evaluate at the current RFD unboosted Firemaking target.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.item.1521.quantity","comparison":"AT_MOST","target":0,"description":"Recheck when carried oak logs are exhausted.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.65,"playStyle":"Carried-resource line fires","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0,"assumptions":"One lighting action is modeled. Terrain, Woodcutting and future log acquisition are not inferred."},
+      "danger":"LOW","reason":"A UIM-relevant path toward 50 that frees the verified carried log position one action at a time.",
+      "optionalSetup":[],"workingCapacity":[],
+      "efficiencyProfiles":[{"id":"profile.firemaking.carried_oak_logs.single","priority":0,"requirements":[{"fact":"inventory.item.590.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried tinderbox.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.item.1521.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried oak log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.45,"notes":"Editorial value for one verified oak-log lighting action; no Woodcutting, hourly rate or resupply is credited."}],
+      "sources":[{"url":"https://oldschool.runescape.wiki/w/Ironman_Guide/Firemaking","reviewedAt":"2026-09-14","notes":"The iron-account guide recommends oak logs through most of the route to 50 and does not require bank access."},{"url":"https://oldschool.runescape.wiki/w/Firemaking","reviewedAt":"2026-09-14","notes":"Level 15, tinderbox use and the oak-log lighting action were reviewed."},{"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact tinderbox and oak-log identities use pinned public gameval constants."}],
+      "preparationAnyOf":[]
+    }
+  ]
+}

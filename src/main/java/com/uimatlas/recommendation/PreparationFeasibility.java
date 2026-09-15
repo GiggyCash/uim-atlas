@@ -32,15 +32,18 @@ public final class PreparationFeasibility
         List<Requirement> unresolvedRequirements;
         List<Requirement> blockers;
         Map<String, Observation<Boolean>> preparationSupport;
+        List<MethodEvaluator.GroupCheck> unresolvedGroups;
 
         private Result(Status status, List<Deficit> deficits, List<Requirement> unresolved,
-            List<Requirement> blockers, Map<String, Observation<Boolean>> preparationSupport)
+            List<Requirement> blockers, Map<String, Observation<Boolean>> preparationSupport,
+            List<MethodEvaluator.GroupCheck> unresolvedGroups)
         {
             this.status = status;
             this.deficits = List.copyOf(deficits);
             this.unresolvedRequirements = List.copyOf(unresolved);
             this.blockers = List.copyOf(blockers);
             this.preparationSupport = Map.copyOf(preparationSupport);
+            this.unresolvedGroups = List.copyOf(unresolvedGroups);
         }
     }
 
@@ -65,7 +68,7 @@ public final class PreparationFeasibility
         MethodEvaluator.Evaluation evaluation = efficiency.getEvaluation();
         if (evaluation.getStatus() == MethodEvaluator.Status.BLOCKED)
         {
-            return new Result(Status.BLOCKED, List.of(), List.of(), evaluation.getBlockers(), support);
+            return new Result(Status.BLOCKED, List.of(), List.of(), evaluation.getBlockers(), support, List.of());
         }
 
         Map<String, Deficit> deficits = new LinkedHashMap<>();
@@ -105,14 +108,17 @@ public final class PreparationFeasibility
         orderedDeficits.sort(Comparator.comparing(deficit -> deficit.getRequirement().getFact()));
         List<Requirement> orderedUnresolved = new ArrayList<>(unresolved.values());
         orderedUnresolved.sort(Comparator.comparing(Requirement::getFact));
+        List<MethodEvaluator.GroupCheck> unresolvedGroups = evaluation.getPreparationAnyOf().stream()
+            .filter(check -> check.getResult() != MethodEvaluator.GroupResult.SATISFIED)
+            .collect(java.util.stream.Collectors.toList());
         boolean ready = evaluation.getStatus() == MethodEvaluator.Status.AVAILABLE
-            && orderedDeficits.isEmpty() && orderedUnresolved.isEmpty();
+            && orderedDeficits.isEmpty() && orderedUnresolved.isEmpty() && unresolvedGroups.isEmpty();
         boolean feasible = evaluation.getStatus() == MethodEvaluator.Status.NEEDS_PREP
-            && orderedUnresolved.isEmpty() && !orderedDeficits.isEmpty()
+            && orderedUnresolved.isEmpty() && unresolvedGroups.isEmpty() && !orderedDeficits.isEmpty()
             && orderedDeficits.stream().allMatch(deficit -> trustedSupport(
                 support.get(deficit.getRequirement().getFact()), deficit.getRequirement(), now));
         return new Result(ready ? Status.READY : feasible ? Status.FEASIBLE_PREP : Status.UNRESOLVED_PREP,
-            orderedDeficits, orderedUnresolved, List.of(), support);
+            orderedDeficits, orderedUnresolved, List.of(), support, unresolvedGroups);
     }
 
     private static void addDeficit(Map<String, Deficit> deficits, Requirement requirement,

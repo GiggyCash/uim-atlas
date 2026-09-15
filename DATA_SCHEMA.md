@@ -17,7 +17,7 @@ This section describes the implemented format. Later sections remain conceptual 
 - `facts`: objects containing a unique stable `id`
 - `methods`: a nonempty array of method definitions
 
-The synthetic catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs use the separate v3/v4 entry point below; changing the data-kind label alone cannot enable them.
+The synthetic catalog is `src/test/resources/uimatlas/methods/synthetic-methods.json`, containing three invented exercises. It is excluded from the plugin JAR. Method IDs must begin with `synthetic.method.` and display names with `Synthetic `. The loader is not wired into plugin startup. Production catalogs use the separate v3/v4/v5 entry point below; changing the data-kind label alone cannot enable them.
 
 Stable IDs use lowercase letters, digits, underscores and dot-separated segments: `[a-z][a-z0-9_]*(\.[a-z0-9_]+)+`. Every requirement fact and produced resource ID must resolve in the catalog's `facts` declarations. These declarations validate references, not observation availability. Synthetic v1 facts contain only `id`. Production `inventory.item.<itemId>.usable_slots` facts additionally require `capacitySemantics: FREE_PLUS_OBSERVED_EXACT_ITEM_SLOTS`; that field is forbidden on every other fact. Unknown fact observations remain unknown. Item and goal loaders receive caller-supplied canonical item/quest boundaries rather than embedding registries in Java.
 
@@ -57,7 +57,7 @@ Validation rejects missing/extra/duplicate JSON fields, nulls, wrong types, unsu
 
 `src/main/resources/uimatlas/methods/construction-v1.json` contains exactly three curated records: novice oak Mahogany Homes contracts, adept teak contracts, and limestone attack stones using an existing flamtaer bag. Catalog revision v1 is distinct from serialization version `3`. Data ships in the JAR; there are no runtime fetches, startup loading, live candidates or UI changes.
 
-`MethodDefinitionLoader.loadProduction(Reader, Set<Integer> canonicalItemIds)` accepts supported production schema versions 3 and 4 with `dataKind: PRODUCTION` and the same root `facts`/`methods` shape as v1. It preserves strict v1 validation, removes method-level `xpRate` for production, and requires these additional method fields. Production v2 is rejected. Construction remains schema v3; Herblore v1 uses v4's resource-flow extension below. Synthetic v1 keeps its original fields and behavior:
+`MethodDefinitionLoader.loadProduction(Reader, Set<Integer> canonicalItemIds)` accepts supported production schema versions 3, 4 and 5 with `dataKind: PRODUCTION`. It preserves strict v1 validation, removes method-level `xpRate` for production, and requires these additional method fields. Production v2 remains rejected. Construction remains schema v3; Herblore and the first transformation catalogs use v4; alternative-group catalogs and resource sinks use v5. Synthetic v1 keeps its original fields and behavior:
 
 | Field | Contract |
 | --- | --- |
@@ -174,9 +174,21 @@ The five ordinary carried-input records deliberately attach no hourly XP range. 
 
 ### RFD Skill Coverage Pack v1 (no schema change)
 
-Four additional catalogs use existing contracts: Mining (3), Fishing (2) and Agility (3) use v3; Crafting (3) uses v4 for carried glassmaking/glassblowing flows. The bundled `uimatlas/methods/catalogs.txt` lists all six method JSON resources. `ProductionMethodCatalog` validates index paths, delegates to `loadProduction`, rejects duplicate method IDs across files and returns immutable ID-sorted records. No filesystem scan, schema version bump or skill-specific registration is needed.
+At RFD Skill Coverage Pack v1, four additional catalogs used the existing contracts: Mining (3), Fishing (2) and Agility (3) used v3; Crafting (3) used v4 for carried glassmaking/glassblowing flows. RFD Skill Coverage Pack v2 adds eight skill catalogs and twenty-one methods. The bundled `uimatlas/methods/catalogs.txt` now lists fourteen method JSON resources containing forty-one production methods. `ProductionMethodCatalog` validates index paths, delegates to `loadProduction`, rejects duplicate method IDs across files and returns immutable ID-sorted records. No filesystem scan or skill-specific registration is needed.
 
-The pack adds no hourly XP claims. Three optional rune-pickaxe profiles require current exact possession and level 41; eleven ordinary profiles retain the existing explicit verified-setup scoring convention. Unsupported capability declarations are not observations. See the [method, capacity, source and coverage audit](docs/rfd-skill-coverage-v1.md), including the distinction between five catalog-covered RFD skill families and four with currently observable ready setups.
+The first pack added no hourly XP claims. The v2 pack also avoids hourly claims whose sustained setup is not established. See the historical [v1 audit](docs/rfd-skill-coverage-v1.md) and current [v2 method, source, readiness and coverage audit](docs/rfd-skill-coverage-v2.md).
+
+### Production requirement alternatives (schema v5)
+
+Schema v5 preserves every production-v4 field and adds required root `requirementGroups` and method `preparationAnyOf` arrays; either array may be empty. A method references a reusable catalog-local group with exactly `{ "group": "requirement_group..." }`. Every declared group must be referenced. Group IDs, alternative IDs and fact references are stable validated identifiers. A group needs a nonblank description and at least two uniquely named alternatives. Every alternative contains a nonempty conjunction of ordinary requirements with distinct fact IDs. Safety requirements are forbidden in preparation alternatives because safety remains a hard gate.
+
+Evaluation is deterministic by group ID, alternative ID and leaf fact ID. One fully verified alternative satisfies the group even if other alternatives are missing or unknown. If every alternative has a known failure, the group is missing preparation. If none is satisfied and at least one still could be satisfied after resolving UNKNOWN observations, the group remains UNKNOWN. Known failures stay in their alternative diagnostics and are not upgraded by another unknown branch. `PreparationFeasibility` retains every non-satisfied group as unresolved because no acquisition provider resolves a group in this milestone.
+
+The Mining and Woodcutting catalogs use this primitive for ordinary pickaxes and axes. Each alternative combines an exact current `carried.item.<id>.quantity` predicate with its exact skill-use level. Equipment and inventory observations feed the existing generic `carried` facts. Tool identities and use levels remain data; there is no Mining, Woodcutting, pickaxe or axe switch in production Java. The same primitive also expresses the lockpick-or-hair-clip requirement for stealing artefacts.
+
+Schema v5 retains explicit v4 slot semantics and additionally permits a flow with nonempty `consumes` and empty `produces`. This represents a bounded resource sink whose retained inventory output is genuinely absent. Firemaking uses it for one carried log: the exact input position is released and no ash is fabricated in inventory. Output-only flows are invalid. Schema v4 continues to require both inputs and outputs when a flow is present.
+
+Production activities must be uppercase stable identifiers. Loader validation rejects malformed activities, unused/duplicate/unresolved groups, groups with fewer than two alternatives, duplicate alternative IDs or leaf facts, safety predicates in preparation groups, invalid canonical item IDs, invalid levels/quantities/slots, malformed sources and unsupported flow shapes. All schema versions still reject unknown fields and source/test markers in production resources.
 
 ### Production goals v1
 

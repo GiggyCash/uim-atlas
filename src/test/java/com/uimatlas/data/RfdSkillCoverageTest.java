@@ -155,18 +155,18 @@ public class RfdSkillCoverageTest
     }
 
     @Test
-    public void catalogMiningCoverageDoesNotPretendTheCurrentObserverProvesToolUsability() throws Exception
+    public void catalogMiningCoverageUsesObservedCarriedToolInsteadOfCapabilityGuess() throws Exception
     {
         AccountState state = account(Map.of("MINING", 41)).toBuilder().capabilities(Observation.unknown()).build();
         StrategicDecision.Result result = decide(state, ProductionSkillCoverageCatalogTest.load(), Map.of(), Map.of());
         assertEquals(3, relevant(result).size());
-        assertTrue(result.getBestActionable().isEmpty());
-        assertTrue(method(result, "method.mining.iron_mount_karuulm").getEvaluation().getUnknownRequirements()
-            .stream().anyMatch(r -> r.getFact().equals("capability.tool.usable_pickaxe")));
+        assertEquals("method.mining.iron_mount_karuulm", result.getBestActionable().orElseThrow().getAction().getId());
+        assertEquals(MethodEvaluator.GroupResult.SATISFIED,
+            method(result, "method.mining.iron_mount_karuulm").getEvaluation().getPreparationAnyOf().get(0).getResult());
     }
 
     @Test
-    public void coverageImprovesFromOneToFiveOfThirteenWithExactRemainingGaps() throws Exception
+    public void coverageImprovesFromOneToThirteenOfThirteen() throws Exception
     {
         Set<String> targets = ProductionGoalCatalogTest.load().getRequirements().stream().map(Requirement::getFact)
             .filter(f -> f.startsWith("skill.")).map(f -> f.split("\\.")[1].toUpperCase(java.util.Locale.ROOT))
@@ -176,9 +176,9 @@ public class RfdSkillCoverageTest
         before.addAll(ProductionHerbloreCatalogTest.load());
         assertEquals(1, covered(targets, before).size());
         List<MethodDefinition> after = ProductionSkillCoverageCatalogTest.load();
-        assertEquals(Set.of("MINING", "FISHING", "AGILITY", "CRAFTING", "HERBLORE"), covered(targets, after));
+        assertEquals(targets, covered(targets, after));
         targets.removeAll(covered(targets, after));
-        assertEquals(Set.of("COOKING", "THIEVING", "MAGIC", "SMITHING", "FIREMAKING", "RANGED", "FLETCHING", "WOODCUTTING"), targets);
+        assertTrue(targets.isEmpty());
         // Catalog coverage is not a claim of coverage from every starting level.
         StrategicDecision.Result low = decide(account(Map.of("FISHING", 1, "MINING", 1)), after, Map.of(), Map.of());
         assertTrue(low.getContext().getCoverageGaps().stream().anyMatch(g -> g.getCheck().getRequirement().getFact().equals("skill.fishing.level")));
@@ -201,8 +201,7 @@ public class RfdSkillCoverageTest
             .quests(Observation.map(quests, "scenario quests", NOW).lastObserved())
             .questPoints(Observation.verified(175, "scenario quest points", NOW).lastObserved())
             .capabilities(Observation.map(Map.of("capability.combat.rfd_no_prayer", false,
-                "capability.tool.usable_pickaxe", true, "capability.access.cam_torum_mine", false,
-                "capability.activity.star.accessible_layer", false,
+                "capability.access.cam_torum_mine", false, "capability.activity.star.accessible_layer", false,
                 "capability.setup.agility.failure_recovery", true, "capability.quest.priest_in_peril.complete", true),
                 "scenario capability proof; not a live provider", NOW))
             .inventory(Observation.verified(new ItemContainerState(Map.of(

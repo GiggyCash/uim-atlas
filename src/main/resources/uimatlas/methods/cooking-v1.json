@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 5,
+  "dataKind": "PRODUCTION",
+  "facts": [
+    {"id":"inventory.free_slots"},
+    {"id":"inventory.item.1937.quantity"}, {"id":"inventory.item.1937.occupied_slots"},
+    {"id":"inventory.item.1987.quantity"}, {"id":"inventory.item.1987.occupied_slots"},
+    {"id":"inventory.item.1995.quantity"}, {"id":"inventory.item.1995.occupied_slots"},
+    {"id":"skill.cooking.level"}
+  ],
+  "requirementGroups": [],
+  "methods": [
+    {
+      "id":"method.cooking.hosidius_mess_meat_pies", "displayName":"Prepare servery meat pies at the Hosidius Mess", "category":"TRAINING", "activity":"COOKING",
+      "start":{"location":"Hosidius Mess servery","contact":"Servery cupboard and range","instruction":"Prepare and serve meat pies with the room's supplies. Recheck before expanding the batch; no outside ingredient acquisition or disposal is modeled."},
+      "hardRequirements":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":20,"description":"Unboosted level 20 required to prepare servery meat pies.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],
+      "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":4,"description":"Four ordinary empty positions for a small self-contained preparation cycle; maximum-throughput inventory clearing is not assumed.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[], "consumes":[], "produces":[],
+      "stopConditions":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":65,"description":"Re-evaluate at the servery pineapple-pizza tier or the selected goal target, whichever comes first.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.7,"playStyle":"Focused self-contained training","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.2,"assumptions":"Travel time is unestimated. The room supplies the modeled ingredients; four free positions scope a small cycle and do not claim maximum throughput."},
+      "danger":"LOW", "reason":"A supply-free UIM Cooking path when ordinary inventory space is available.",
+      "optionalSetup":[], "workingCapacity":[],
+      "efficiencyProfiles":[{"id":"profile.cooking.hosidius_mess_meat_pies.small_cycle","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":4,"description":"Four ordinary empty positions for the scoped small cycle.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.35,"notes":"Editorial value for a verified small self-contained cycle; published maximum rates assume much more space and are not imported."}],
+      "sources":[
+        {"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Cooking","reviewedAt":"2026-09-14","notes":"The UIM guide identifies Hosidius Mess as a no-supply, no-money method and gives meat pies from level 20; large empty inventories are an efficiency recommendation."},
+        {"url":"https://oldschool.runescape.wiki/w/Hosidius_Mess","reviewedAt":"2026-09-14","notes":"Activity page reviewed for the servery cupboard, preparation loop and serving location."}
+      ],
+      "preparationAnyOf":[]
+    },
+    {
+      "id":"method.cooking.jugs_of_wine_carried", "displayName":"Make carried jugs of wine", "category":"PROCESSING", "activity":"COOKING",
+      "start":{"location":"Current safe location","contact":"Carried grapes and jugs of water","instruction":"Combine one exact carried grape with one exact carried jug of water. Wait for fermentation and re-evaluate; no future ingredients, banking or unnoting are assumed."},
+      "hardRequirements":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":35,"description":"Unboosted level 35 required to make unfermented wine.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],
+      "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No additional empty position: two observed input positions become one unfermented-wine position.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[],
+      "consumes":[
+        {"fact":"inventory.item.1987.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried grape.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false,"slotSemantics":"ONE_SLOT_PER_UNIT"},
+        {"fact":"inventory.item.1937.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried jug of water.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false,"slotSemantics":"ONE_SLOT_PER_UNIT"}
+      ],
+      "produces":[{"resourceId":"inventory.item.1995.quantity","quantity":1,"basis":"One unfermented wine per combination; fermentation outcome is assessed later.","slotSemantics":"ONE_SLOT_PER_UNIT"}],
+      "stopConditions":[
+        {"fact":"skill.cooking.level","comparison":"AT_LEAST","target":70,"description":"Re-evaluate at the current RFD unboosted Cooking target.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+        {"fact":"inventory.item.1987.quantity","comparison":"AT_MOST","target":0,"description":"Recheck when carried grapes are exhausted.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+        {"fact":"inventory.item.1937.quantity","comparison":"AT_MOST","target":0,"description":"Recheck when carried jugs of water are exhausted.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}
+      ],
+      "style":{"attention":0.55,"playStyle":"Carried-resource processing","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0,"assumptions":"Only one carried combination is modeled. Fermentation takes time and can fail below level 68; no hourly rate or guaranteed Cooking XP is claimed."},
+      "danger":"LOW", "reason":"Turns exact carried ingredients into a compact bounded Cooking action without assuming a bank or resupply.",
+      "optionalSetup":[], "workingCapacity":[],
+      "efficiencyProfiles":[{"id":"profile.cooking.jugs_of_wine_carried.single","priority":0,"requirements":[{"fact":"inventory.item.1987.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried grape.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.item.1937.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried jug of water.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.5,"notes":"Editorial value for a verified carried combination. Failure chance below 68 and the later fermentation boundary prevent an XP-rate claim."}],
+      "sources":[
+        {"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Cooking","reviewedAt":"2026-09-14","notes":"The UIM guide identifies wine as an easier carried-input alternative at higher levels; its noted-item and death-storage route is excluded."},
+        {"url":"https://oldschool.runescape.wiki/w/Jug_of_wine","reviewedAt":"2026-09-14","notes":"Level 35, one grape plus one jug of water, the unfermented intermediate, fermentation delay and failure below level 68 were reviewed."},
+        {"url":"https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java","reviewedAt":"2026-09-14","notes":"Exact grape, jug-of-water and unfermented-wine identities use pinned public gameval constants."}
+      ],
+      "preparationAnyOf":[]
+    },
+    {
+      "id":"method.cooking.hosidius_mess_pineapple_pizzas", "displayName":"Prepare servery pineapple pizzas at the Hosidius Mess", "category":"TRAINING", "activity":"COOKING",
+      "start":{"location":"Hosidius Mess servery","contact":"Servery cupboard and range","instruction":"Prepare and serve pineapple pizzas with the room's supplies. Use a small cycle and recheck capacity; Humidify and maximum-space layouts are optional efficiency assumptions."},
+      "hardRequirements":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":65,"description":"Unboosted level 65 required to prepare servery pineapple pizzas.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "preparation":[],
+      "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":6,"description":"Six ordinary empty positions for a conservative small pizza cycle; a maximum-throughput empty inventory is not assumed.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
+      "setupItems":[], "consumes":[], "produces":[],
+      "stopConditions":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":70,"description":"Re-evaluate at the current RFD unboosted Cooking target.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
+      "style":{"attention":0.85,"playStyle":"Focused self-contained training","tickManipulation":false},
+      "costs":{"storageUnlockValue":0,"setupMinutes":0,"transitionMinutes":0,"inventoryDisruption":0.3,"assumptions":"Travel time is unestimated. The room supplies ingredients. Humidify and extensive inventory clearing remain optional and earn no default benefit."},
+      "danger":"LOW", "reason":"A faster self-contained late-RFD Cooking option that does not assume carried raw food or shop acquisition.",
+      "optionalSetup":[], "workingCapacity":[],
+      "efficiencyProfiles":[{"id":"profile.cooking.hosidius_mess_pineapple_pizzas.small_cycle","priority":0,"requirements":[{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":6,"description":"Six ordinary empty positions for the scoped small cycle.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"efficiency":0.65,"notes":"Editorial value for a verified small cycle. Published rates assume high focus, much more space and Humidify; none is claimed here."}],
+      "sources":[
+        {"url":"https://oldschool.runescape.wiki/w/Ultimate_Ironman_Guide/Cooking","reviewedAt":"2026-09-14","notes":"The UIM guide identifies level-65 servery pineapple pizzas as the faster Mess tier and states that Humidify improves speed but is not required."},
+        {"url":"https://oldschool.runescape.wiki/w/Hosidius_Mess","reviewedAt":"2026-09-14","notes":"Activity page reviewed for level, supplied ingredients and the serving loop."}
+      ],
+      "preparationAnyOf":[]
+    }
+  ]
+}

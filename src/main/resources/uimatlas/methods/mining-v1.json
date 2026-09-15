@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
   "dataKind": "PRODUCTION",
   "facts": [
     {
@@ -9,9 +9,6 @@
       "id": "capability.activity.star.accessible_layer"
     },
     {
-      "id": "capability.tool.usable_pickaxe"
-    },
-    {
       "id": "carried.item.1275.quantity"
     },
     {
@@ -19,6 +16,24 @@
     },
     {
       "id": "skill.mining.level"
+    },
+    {
+      "id": "carried.item.1265.quantity"
+    },
+    {
+      "id": "carried.item.1267.quantity"
+    },
+    {
+      "id": "carried.item.1269.quantity"
+    },
+    {
+      "id": "carried.item.12297.quantity"
+    },
+    {
+      "id": "carried.item.1273.quantity"
+    },
+    {
+      "id": "carried.item.1271.quantity"
     }
   ],
   "methods": [
@@ -43,17 +58,7 @@
           "safetyRelevant": false
         }
       ],
-      "preparation": [
-        {
-          "fact": "capability.tool.usable_pickaxe",
-          "comparison": "EQUAL",
-          "target": 1,
-          "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
-          "allowLastObserved": false,
-          "maxAgeSeconds": 300,
-          "safetyRelevant": false
-        }
-      ],
+      "preparation": [],
       "freeInventorySlots": {
         "fact": "inventory.free_slots",
         "comparison": "AT_LEAST",
@@ -117,15 +122,6 @@
           "id": "profile.mining.iron_mount_karuulm.ordinary",
           "priority": 0,
           "requirements": [
-            {
-              "fact": "capability.tool.usable_pickaxe",
-              "comparison": "EQUAL",
-              "target": 1,
-              "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
-              "allowLastObserved": false,
-              "maxAgeSeconds": 300,
-              "safetyRelevant": false
-            },
             {
               "fact": "inventory.free_slots",
               "comparison": "AT_LEAST",
@@ -192,6 +188,11 @@
           "reviewedAt": "2026-09-14",
           "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
         }
+      ],
+      "preparationAnyOf": [
+        {
+          "group": "requirement_group.mining.usable_ordinary_pickaxe"
+        }
       ]
     },
     {
@@ -224,17 +225,7 @@
           "safetyRelevant": false
         }
       ],
-      "preparation": [
-        {
-          "fact": "capability.tool.usable_pickaxe",
-          "comparison": "EQUAL",
-          "target": 1,
-          "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
-          "allowLastObserved": false,
-          "maxAgeSeconds": 300,
-          "safetyRelevant": false
-        }
-      ],
+      "preparation": [],
       "freeInventorySlots": {
         "fact": "inventory.free_slots",
         "comparison": "AT_LEAST",
@@ -298,15 +289,6 @@
           "id": "profile.mining.calcified_cam_torum.ordinary",
           "priority": 0,
           "requirements": [
-            {
-              "fact": "capability.tool.usable_pickaxe",
-              "comparison": "EQUAL",
-              "target": 1,
-              "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
-              "allowLastObserved": false,
-              "maxAgeSeconds": 300,
-              "safetyRelevant": false
-            },
             {
               "fact": "inventory.free_slots",
               "comparison": "AT_LEAST",
@@ -373,6 +355,11 @@
           "reviewedAt": "2026-09-14",
           "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
         }
+      ],
+      "preparationAnyOf": [
+        {
+          "group": "requirement_group.mining.usable_ordinary_pickaxe"
+        }
       ]
     },
     {
@@ -405,17 +392,7 @@
           "safetyRelevant": false
         }
       ],
-      "preparation": [
-        {
-          "fact": "capability.tool.usable_pickaxe",
-          "comparison": "EQUAL",
-          "target": 1,
-          "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
-          "allowLastObserved": false,
-          "maxAgeSeconds": 300,
-          "safetyRelevant": false
-        }
-      ],
+      "preparation": [],
       "freeInventorySlots": {
         "fact": "inventory.free_slots",
         "comparison": "AT_LEAST",
@@ -480,15 +457,6 @@
           "priority": 0,
           "requirements": [
             {
-              "fact": "capability.tool.usable_pickaxe",
-              "comparison": "EQUAL",
-              "target": 1,
-              "description": "Verify a pickaxe currently carried or equipped and usable at the real level, including any required charges/unlocks. No tool provider currently supplies this fact.",
-              "allowLastObserved": false,
-              "maxAgeSeconds": 300,
-              "safetyRelevant": false
-            },
-            {
               "fact": "inventory.free_slots",
               "comparison": "AT_LEAST",
               "target": 1,
@@ -548,6 +516,180 @@
           "url": "https://github.com/runelite/runelite/blob/runelite-parent-1.12.38/runelite-api/src/main/java/net/runelite/api/gameval/ItemID.java",
           "reviewedAt": "2026-09-14",
           "notes": "Exact item identities checked against the pinned public top-level gameval constants; no noted or equipment variant substitution."
+        }
+      ],
+      "preparationAnyOf": [
+        {
+          "group": "requirement_group.mining.usable_ordinary_pickaxe"
+        }
+      ]
+    }
+  ],
+  "requirementGroups": [
+    {
+      "id": "requirement_group.mining.usable_ordinary_pickaxe",
+      "description": "One currently carried ordinary pickaxe whose exact Mining level requirement is met.",
+      "alternatives": [
+        {
+          "id": "alternative.mining.bronze_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.1265.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact bronze pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Level 1 Mining required to use a bronze pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
+        },
+        {
+          "id": "alternative.mining.iron_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.1267.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact iron pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "Level 1 Mining required to use a iron pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
+        },
+        {
+          "id": "alternative.mining.steel_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.1269.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact steel pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 6,
+              "description": "Level 6 Mining required to use a steel pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
+        },
+        {
+          "id": "alternative.mining.black_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.12297.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact black pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 11,
+              "description": "Level 11 Mining required to use a black pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
+        },
+        {
+          "id": "alternative.mining.mithril_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.1273.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact mithril pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 21,
+              "description": "Level 21 Mining required to use a mithril pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
+        },
+        {
+          "id": "alternative.mining.adamant_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.1271.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact adamant pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 31,
+              "description": "Level 31 Mining required to use a adamant pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
+        },
+        {
+          "id": "alternative.mining.rune_pickaxe",
+          "requirements": [
+            {
+              "fact": "carried.item.1275.quantity",
+              "comparison": "AT_LEAST",
+              "target": 1,
+              "description": "One exact rune pickaxe currently carried.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            },
+            {
+              "fact": "skill.mining.level",
+              "comparison": "AT_LEAST",
+              "target": 41,
+              "description": "Level 41 Mining required to use a rune pickaxe.",
+              "allowLastObserved": false,
+              "maxAgeSeconds": 300,
+              "safetyRelevant": false
+            }
+          ]
         }
       ]
     }
