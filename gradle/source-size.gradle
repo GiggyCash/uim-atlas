@@ -4,10 +4,11 @@ tasks.register('javaSourceSize') {
     doLast {
         def rows = fileTree('src').matching { include '**/*.java' }.files.collect { file ->
             def source = file.getText('UTF-8')
-            [path: relativePath(file), lines: source.readLines().size(), chars: source.length()]
+            [path: relativePath(file).replace('\\', '/'), lines: source.readLines().size(), chars: source.length()]
         }.sort { a, b -> b.chars <=> a.chars ?: a.path <=> b.path }
+        def coreRows = rows.findAll { it.path.startsWith('src/main/java/') }
         def report = new StringBuilder('Java source size (tokens estimated as characters / 4)\n')
-        ['All': rows, 'Core': rows.findAll { it.path.startsWith('src/main/java/') }].each { label, files ->
+        ['All': rows, 'Core': coreRows].each { label, files ->
             int chars = files.sum { it.chars } ?: 0
             report.append("${label}: ${files.size()} files, ${files.sum { it.lines } ?: 0} lines, ${chars} characters, ~${Math.ceil(chars / 4.0) as int} tokens\n")
         }
@@ -23,7 +24,7 @@ tasks.register('javaSourceSize') {
         output.parentFile.mkdirs()
         output.setText(report.toString(), 'UTF-8')
         logger.lifecycle(report.toString())
-        def coreTokens = Math.ceil((rows.findAll { it.path.startsWith('src/main/java/') }.sum { it.chars } ?: 0) / 4.0)
+        def coreTokens = Math.ceil((coreRows.sum { it.chars } ?: 0) / 4.0)
         if (coreTokens >= 150000) {
             throw new GradleException('Core Java requires an architecture review: ~150k source tokens exceeded.')
         }
