@@ -9,7 +9,7 @@
   "methods":[
     {
       "id":"method.magic.arceuus_library_books","displayName":"Find books in the Arceuus Library","category":"TRAINING","activity":"MAGIC",
-      "start":{"location":"Arceuus Library","contact":"Sam, Professor Gracklebone, or Villia","instruction":"Find and return one requested text, then apply the resulting book of arcane knowledge to Magic. Scope one delivery and recheck inventory before continuing."},
+      "start":{"location":"Arceuus Library","routeTarget":{"x":1632,"y":3808,"plane":0},"contact":"Sam, Professor Gracklebone, or Villia","instruction":"Find and return one requested text, then apply the resulting book of arcane knowledge to Magic. Scope one delivery and recheck inventory before continuing."},
       "hardRequirements":[{"fact":"skill.magic.level","comparison":"AT_LEAST","target":1,"description":"A real Magic level is required so the experience reward can scale from it.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for a requested library text or its knowledge-book reward.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[],"produces":[],
@@ -22,7 +22,7 @@
     },
     {
       "id":"method.magic.mta_telekinetic_theatre","displayName":"Make the next Telekinetic Theatre move","category":"MINIGAME","activity":"MAGIC",
-      "start":{"location":"Mage Training Arena north of Emir's Arena","contact":"Telekinetic Theatre portal","instruction":"Use one Telekinetic Grab with exact carried law and air runes for the next maze move. This is a bounded cast, not proof of enough runes to complete a maze or reward grind."},
+      "start":{"location":"Mage Training Arena north of Emir's Arena","routeTarget":{"x":3362,"y":3318,"plane":0},"contact":"Telekinetic Theatre portal","instruction":"Use one Telekinetic Grab with exact carried law and air runes for the next maze move. This is a bounded cast, not proof of enough runes to complete a maze or reward grind."},
       "hardRequirements":[{"fact":"skill.magic.level","comparison":"AT_LEAST","target":33,"description":"Unboosted level 33 required for Telekinetic Grab and this room.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No ordinary empty position is required for the scoped cast; reward-space planning is outside this start.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[{"fact":"inventory.item.563.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried law rune for the next Telekinetic Grab cast.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},{"fact":"inventory.item.556.quantity","comparison":"AT_LEAST","target":1,"description":"One exact carried air rune for the next Telekinetic Grab cast without a staff substitution.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"produces":[],
@@ -35,7 +35,7 @@
     },
     {
       "id":"method.magic.fire_strike_sand_crabs","displayName":"Cast Fire Strike at sand crabs","category":"COMBAT_TRAINING","activity":"MAGIC",
-      "start":{"location":"Hosidius sand-crab coast","contact":"Sand crab","instruction":"Cast one Fire Strike using exact carried runes, then reassess the bounded combat session. No safespot, food, prayer, death safety or long-term rune supply is assumed."},
+      "start":{"location":"Hosidius sand-crab coast","routeTarget":{"x":1739,"y":3468,"plane":0},"contact":"Sand crab","instruction":"Cast one Fire Strike using exact carried runes, then reassess the bounded combat session. No safespot, food, prayer, death safety or long-term rune supply is assumed."},
       "hardRequirements":[{"fact":"skill.magic.level","comparison":"AT_LEAST","target":13,"description":"Unboosted level 13 required to cast Fire Strike.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No empty position is required for the next cast; loot and sustained-session capacity are outside scope.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[

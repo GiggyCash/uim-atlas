@@ -12,7 +12,7 @@
   "methods": [
     {
       "id":"method.cooking.hosidius_mess_meat_pies", "displayName":"Prepare servery meat pies at the Hosidius Mess", "category":"TRAINING", "activity":"COOKING",
-      "start":{"location":"Hosidius Mess servery","contact":"Servery cupboard and range","instruction":"Prepare and serve meat pies with the room's supplies. Recheck before expanding the batch; no outside ingredient acquisition or disposal is modeled."},
+      "start":{"location":"Hosidius Mess servery","routeTarget":{"x":1646,"y":3631,"plane":0},"contact":"Servery cupboard and range","instruction":"Prepare and serve meat pies with the room's supplies. Recheck before expanding the batch; no outside ingredient acquisition or disposal is modeled."},
       "hardRequirements":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":20,"description":"Unboosted level 20 required to prepare servery meat pies.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],
       "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":4,"description":"Four ordinary empty positions for a small self-contained preparation cycle; maximum-throughput inventory clearing is not assumed.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
@@ -60,7 +60,7 @@
     },
     {
       "id":"method.cooking.hosidius_mess_pineapple_pizzas", "displayName":"Prepare servery pineapple pizzas at the Hosidius Mess", "category":"TRAINING", "activity":"COOKING",
-      "start":{"location":"Hosidius Mess servery","contact":"Servery cupboard and range","instruction":"Prepare and serve pineapple pizzas with the room's supplies. Use a small cycle and recheck capacity; Humidify and maximum-space layouts are optional efficiency assumptions."},
+      "start":{"location":"Hosidius Mess servery","routeTarget":{"x":1646,"y":3631,"plane":0},"contact":"Servery cupboard and range","instruction":"Prepare and serve pineapple pizzas with the room's supplies. Use a small cycle and recheck capacity; Humidify and maximum-space layouts are optional efficiency assumptions."},
       "hardRequirements":[{"fact":"skill.cooking.level","comparison":"AT_LEAST","target":65,"description":"Unboosted level 65 required to prepare servery pineapple pizzas.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],
       "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":6,"description":"Six ordinary empty positions for a conservative small pizza cycle; a maximum-throughput empty inventory is not assumed.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},

@@ -26,7 +26,7 @@
     },
     {
       "id":"method.smithing.bronze_knives_varrock","displayName":"Smith carried bronze bars into knives","category":"PROCESSING","activity":"SMITHING",
-      "start":{"location":"Anvil south of Varrock west bank","contact":"Anvil","instruction":"Use the carried hammer to smith one exact bronze bar into five unpoisoned bronze knives. No bar acquisition or later ammunition use is assumed."},
+      "start":{"location":"Anvil south of Varrock west bank","routeTarget":{"x":3188,"y":3426,"plane":0},"contact":"Anvil","instruction":"Use the carried hammer to smith one exact bronze bar into five unpoisoned bronze knives. No bar acquisition or later ammunition use is assumed."},
       "hardRequirements":[{"fact":"skill.smithing.level","comparison":"AT_LEAST","target":7,"description":"Unboosted level 7 required to smith bronze knives.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"preparation":[],
       "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No additional empty position: the consumed bar position can hold the knife stack.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[{"fact":"inventory.item.2347.quantity","comparison":"AT_LEAST","target":1,"description":"One exact ordinary hammer in inventory; it is returned, not consumed.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
@@ -39,7 +39,7 @@
     },
     {
       "id":"method.smithing.iron_platebody_varrock","displayName":"Smith a carried iron platebody at Varrock","category":"PROCESSING","activity":"SMITHING",
-      "start":{"location":"Anvil south of Varrock west bank","contact":"Anvil","instruction":"Use the carried hammer to smith five exact loose iron bars into one iron platebody. No ore, Superheat, alchemy or disposal loop is assumed."},
+      "start":{"location":"Anvil south of Varrock west bank","routeTarget":{"x":3188,"y":3426,"plane":0},"contact":"Anvil","instruction":"Use the carried hammer to smith five exact loose iron bars into one iron platebody. No ore, Superheat, alchemy or disposal loop is assumed."},
       "hardRequirements":[{"fact":"skill.smithing.level","comparison":"AT_LEAST","target":33,"description":"Unboosted level 33 required to smith an iron platebody.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"preparation":[],
       "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No additional empty position: five consumed bar positions become one platebody position.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[{"fact":"inventory.item.2347.quantity","comparison":"AT_LEAST","target":1,"description":"One exact ordinary hammer in inventory; it is returned, not consumed.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],

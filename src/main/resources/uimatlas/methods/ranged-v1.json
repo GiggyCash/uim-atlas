@@ -8,7 +8,7 @@
   "methods":[
     {
       "id":"method.ranged.bronze_darts_sand_crabs","displayName":"Throw carried bronze darts at sand crabs","category":"COMBAT_TRAINING","activity":"RANGED",
-      "start":{"location":"Hosidius sand-crab coast","contact":"Sand crab","instruction":"Begin a bounded Ranged session with the exact carried dart stack. Reassess ammunition and health rather than assuming a sustainable or safe trip."},
+      "start":{"location":"Hosidius sand-crab coast","routeTarget":{"x":1739,"y":3468,"plane":0},"contact":"Sand crab","instruction":"Begin a bounded Ranged session with the exact carried dart stack. Reassess ammunition and health rather than assuming a sustainable or safe trip."},
       "hardRequirements":[{"fact":"skill.ranged.level","comparison":"AT_LEAST","target":1,"description":"Unboosted level 1 permits bronze darts.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":0,"description":"No empty position is required to begin; drops and later capacity are outside scope.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[{"fact":"carried.item.806.quantity","comparison":"AT_LEAST","target":1,"description":"At least one exact unpoisoned bronze dart currently carried or equipped.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],"produces":[],

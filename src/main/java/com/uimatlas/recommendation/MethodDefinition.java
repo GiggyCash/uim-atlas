@@ -185,6 +185,29 @@ public class MethodDefinition
         String location;
         String contact;
         String instruction;
+        Optional<RouteTarget> routeTarget;
+
+        public Start(String location, String contact, String instruction)
+        {
+            this(location, contact, instruction, Optional.empty());
+        }
+
+        public Start(String location, String contact, String instruction, Optional<RouteTarget> routeTarget)
+        {
+            this.location = location;
+            this.contact = contact;
+            this.instruction = instruction;
+            this.routeTarget = routeTarget;
+        }
+    }
+
+    /** Stable data-defined destination; conversion to RuneLite WorldPoint occurs at the integration edge. */
+    @Value
+    public static class RouteTarget
+    {
+        int x;
+        int y;
+        int plane;
     }
 
     @Value

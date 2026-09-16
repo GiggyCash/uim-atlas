@@ -1,7 +1,10 @@
 package com.uimatlas.plugin;
 
 import com.google.inject.Provides;
+import com.uimatlas.integration.ShortestPathBridge;
 import com.uimatlas.planning.PlanningService;
+import com.uimatlas.recommendation.GoalDefinition;
+import com.uimatlas.recommendation.MethodDefinition;
 import com.uimatlas.state.AccountStateService;
 import com.uimatlas.state.RuneLiteAccountObserver;
 import com.uimatlas.ui.AccountSummary;
@@ -47,6 +50,7 @@ public class UimAtlasPlugin extends Plugin
     @Inject private AccountStateService states;
     @Inject private RuneLiteAccountObserver observer;
     @Inject private PlanningService planningService;
+    @Inject private ShortestPathBridge shortestPath;
 
     private UimAtlasPanel panel;
     private NavigationButton navigation;
@@ -74,8 +78,8 @@ public class UimAtlasPlugin extends Plugin
     protected void startUp()
     {
         running = true;
-        selectedGoalId = null;
-        planning = planningService.plan(states.getSnapshot(), null, Instant.now());
+        selectedGoalId = initialGoalId();
+        planning = planningService.plan(states.getSnapshot(), selectedGoalId, Instant.now());
         clientThread.invokeLater(() ->
         {
             observer.reset();
@@ -88,7 +92,7 @@ public class UimAtlasPlugin extends Plugin
             {
                 return;
             }
-            panel = new UimAtlasPanel(this::selectGoal);
+            panel = new UimAtlasPanel(this::selectGoal, this::requestRoute);
             navigation = NavigationButton.builder().tooltip("UIM Atlas").priority(7)
                 .icon(UimAtlasPanel.navigationIcon()).panel(panel).build();
             panel.render(viewModel());
@@ -251,6 +255,34 @@ public class UimAtlasPlugin extends Plugin
                 selectedGoalId = goalId;
                 recalculate(Instant.now());
                 render();
+            });
+        }
+    }
+
+    private String initialGoalId()
+    {
+        return automaticGoalId(planningService.getGoals());
+    }
+
+    static String automaticGoalId(java.util.List<GoalDefinition> goals)
+    {
+        return goals.size() == 1 ? goals.get(0).getId() : null;
+    }
+
+    private void requestRoute(MethodDefinition.RouteTarget target)
+    {
+        if (running)
+        {
+            clientThread.invokeLater(() ->
+            {
+                boolean requested = shortestPath.requestRoute(target);
+                SwingUtilities.invokeLater(() ->
+                {
+                    if (running && panel != null)
+                    {
+                        panel.routeResult(requested);
+                    }
+                });
             });
         }
     }

@@ -44,6 +44,7 @@
       "activity": "MINING",
       "start": {
         "location": "Mount Karuulm surface mine",
+        "routeTarget": {"x": 1275, "y": 3817, "plane": 0},
         "contact": "Three adjacent iron rocks",
         "instruction": "Mine the surface iron rocks with a currently usable pickaxe. Pause when inventory fills; no sustained powermining/disposal loop is modeled."
       },
@@ -202,6 +203,7 @@
       "activity": "MINING",
       "start": {
         "location": "Cam Torum mine",
+        "routeTarget": {"x": 1435, "y": 3131, "plane": 0},
         "contact": "Calcified rocks",
         "instruction": "Mine normally without tick manipulation. Recheck capacity as deposits arrive; processing deposits and bone shards is outside this activity."
       },

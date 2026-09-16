@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.SwingUtilities;
 import javax.swing.JTextArea;
 import net.runelite.api.Quest;
@@ -233,26 +234,52 @@ public class PlanningServiceTest
         PlannerViewModel model = PlannerViewModel.from(AccountSummary.from(account),
             service.plan(account, goalId(service), NOW));
         assertEquals("SETUP READY", model.getStatus());
+        assertEquals("Train Mining to 50", model.getNext());
+        assertEquals("Mine iron at Mount Karuulm mine", model.getMethod());
         assertEquals("Mount Karuulm surface mine", model.getStart());
-        assertEquals("Recipe for Disaster still needs 50 Mining. Your setup is ready.", model.getReason());
-        String explanation = String.join(" ", model.getWhy());
+        assertEquals("Recipe for Disaster still needs 50 Mining.", model.getReason());
+        assertEquals("8 / 10 milestones", model.getGoalProgress());
+        String explanation = explanation(model);
         assertTrue(explanation.contains("50 Mining"));
         assertTrue(explanation.contains("bronze pickaxe currently carried"));
-        assertTrue(explanation.contains("Start: Mount Karuulm surface mine."));
+        assertTrue(explanation.contains("Mount Karuulm surface mine."));
         assertTrue(explanation.contains("Travel and current proximity have not been verified."));
         assertFalse(explanation.contains("no sustained powermining"));
         assertFalse(explanation.contains("review boundary"));
         assertFalse(explanation.contains("A compact, active iron-mining start"));
         AtomicReference<UimAtlasPanel> panel = new AtomicReference<>();
+        AtomicReference<MethodDefinition.RouteTarget> route = new AtomicReference<>();
+        AtomicInteger routeRequests = new AtomicInteger();
         SwingUtilities.invokeAndWait(() ->
         {
-            panel.set(new UimAtlasPanel());
+            panel.set(new UimAtlasPanel(ignored -> { }, target ->
+            {
+                route.set(target);
+                routeRequests.incrementAndGet();
+            }));
             panel.get().setSize(225, 700);
             panel.get().render(model);
             layout(panel.get());
+            assertTrue(panel.get().isRouteActionVisible());
+            assertFalse(panel.get().isGoalSelectorVisible());
+            assertFalse(panel.get().isWhyExpanded());
+            assertFalse(panel.get().isOptionsExpanded());
+            panel.get().clickRoute();
         });
+        assertEquals(model.getRouteTarget(), route.get());
+        assertEquals(1, routeRequests.get());
         assertTrue(textAreas(panel.get()).stream().anyMatch(value ->
             value.getText().contains("Recipe for Disaster still needs 50 Mining")));
+        PlannerViewModel withoutRoute = new PlannerViewModel(model.getAccount(), model.getAccountState(),
+            model.getGoals(), model.getSelectedGoalId(), model.getGoalName(), model.getGoalProgress(),
+            model.getSurfaceState(), model.getStatus(), model.getNext(), model.getMethod(), model.getStart(),
+            model.getReason(), model.getWhy(), null, model.getAlternatives());
+        SwingUtilities.invokeAndWait(() ->
+        {
+            panel.get().render(withoutRoute);
+            assertFalse(panel.get().isRouteActionVisible());
+        });
+        assertEquals(1, routeRequests.get());
     }
 
     @Test
@@ -275,10 +302,11 @@ public class PlanningServiceTest
             Map.of(2307, QuestStatus.NOT_STARTED));
         PlannerViewModel model = PlannerViewModel.from(AccountSummary.from(smoke),
             service.plan(smoke, goalId(service), NOW));
-        assertEquals("HANDOFF", model.getStatus());
-        assertTrue(model.getReason().contains("active Recipe for Disaster frontier"));
-        assertTrue(String.join(" ", model.getWhy()).contains("have not been verified"));
-        assertEquals("Use Quest Helper to continue this quest.", model.getHandoff());
+        assertEquals("QUEST", model.getStatus());
+        assertTrue(model.getReason().contains("Directly available Recipe for Disaster milestone"));
+        assertTrue(explanation(model).contains("not fully verified"));
+        assertFalse(visibleText(model).contains("HANDOFF"));
+        assertFalse(visibleText(model).contains("Quest Helper"));
 
         AtomicReference<UimAtlasPanel> panel = new AtomicReference<>();
         SwingUtilities.invokeAndWait(() ->
@@ -302,6 +330,7 @@ public class PlanningServiceTest
         assertFalse(laidOut.isEmpty());
         assertTrue(laidOut.stream().allMatch(value -> value.getLineWrap()
             && value.getWrapStyleWord() && value.getPreferredSize().width <= value.getParent().getWidth()));
+        assertFalse(panel.get().isRouteActionVisible());
     }
 
     @Test
@@ -318,7 +347,7 @@ public class PlanningServiceTest
     }
 
     @Test
-    public void viewModelExplainsMethodsQuestsAndDistinctUnknownStates()
+    public void viewModelExplainsMethodsQuestsAndDistinctUnknownStates() throws Exception
     {
         PlanningService service = production();
         AccountState methodAccount = account(20, emptyInventory(NOW), NOW, false, Map.of());
@@ -333,8 +362,17 @@ public class PlanningServiceTest
             Map.of(2310, QuestStatus.NOT_STARTED));
         PlannerViewModel quest = PlannerViewModel.from(AccountSummary.from(questAccount),
             service.plan(questAccount, goalId(service), NOW));
-        assertEquals("HANDOFF", quest.getStatus());
-        assertEquals("Use Quest Helper to continue this quest.", quest.getHandoff());
+        assertEquals("QUEST", quest.getStatus());
+        assertNull(quest.getRouteTarget());
+        assertFalse(visibleText(quest).contains("HANDOFF"));
+        assertFalse(visibleText(quest).contains("Quest Helper"));
+        AtomicReference<UimAtlasPanel> questPanel = new AtomicReference<>();
+        SwingUtilities.invokeAndWait(() ->
+        {
+            questPanel.set(new UimAtlasPanel());
+            questPanel.get().render(quest);
+            assertFalse(questPanel.get().isRouteActionVisible());
+        });
 
         Map<Integer, ItemStack> full = new HashMap<>();
         for (int slot = 0; slot < 28; slot++) { full.put(slot, new ItemStack(995, 1)); }
@@ -368,8 +406,81 @@ public class PlanningServiceTest
             panel.get().render(waiting);
         });
         assertEquals(goalId(service), selected.get());
-        assertEquals("NEEDS INFO", panel.get().getDisplayed().getStatus());
-        assertEquals("Waiting for account state.", panel.get().getDisplayed().getNext());
+        assertEquals("WAITING", panel.get().getDisplayed().getStatus());
+        assertEquals("Waiting for account", panel.get().getDisplayed().getNext());
+    }
+
+    @Test
+    public void multiGoalSurfaceRemainsGenericAndSelectable() throws Exception
+    {
+        PlanningService service = production();
+        AccountState account = account(20, emptyInventory(NOW), NOW, false, Map.of());
+        PlannerViewModel ready = PlannerViewModel.from(AccountSummary.from(account),
+            service.plan(account, goalId(service), NOW));
+        List<PlannerViewModel.GoalOption> choices = List.of(
+            new PlannerViewModel.GoalOption("goal.alpha", "Alpha Goal"),
+            new PlannerViewModel.GoalOption("goal.beta", "Beta Goal"));
+        PlannerViewModel multiple = new PlannerViewModel(ready.getAccount(), ready.getAccountState(), choices,
+            "goal.alpha", "Alpha Goal", ready.getGoalProgress(), ready.getSurfaceState(), ready.getStatus(),
+            ready.getNext(), ready.getMethod(), ready.getStart(), ready.getReason(), ready.getWhy(),
+            ready.getRouteTarget(), ready.getAlternatives());
+        AtomicReference<String> selected = new AtomicReference<>();
+        AtomicReference<UimAtlasPanel> panel = new AtomicReference<>();
+        SwingUtilities.invokeAndWait(() ->
+        {
+            panel.set(new UimAtlasPanel(selected::set));
+            panel.get().render(multiple);
+            assertTrue(panel.get().isGoalSelectorVisible());
+            panel.get().selectGoal("goal.beta");
+        });
+        assertEquals("goal.beta", selected.get());
+    }
+
+    @Test
+    public void deliberateEmptyAndUncertaintyStatesRenderWithoutDiagnosticChrome() throws Exception
+    {
+        PlanningService service = production();
+        AccountState waitingAccount = AccountState.empty();
+        AccountState unsupportedAccount = account(20, emptyInventory(NOW), NOW, false, Map.of()).toBuilder()
+            .accountMode(Observation.verified(AccountMode.NORMAL, "scenario mode", NOW)).build();
+        AccountState completeAccount = account(99, emptyInventory(NOW), NOW, true,
+            Map.of(2316, QuestStatus.FINISHED));
+        AccountState needsInfoAccount = AccountState.builder().loggedIn(true)
+            .accountMode(Observation.verified(AccountMode.ULTIMATE_IRONMAN, "scenario mode", NOW)).build();
+        List<PlannerViewModel> states = List.of(
+            PlannerViewModel.from(AccountSummary.from(waitingAccount),
+                service.plan(waitingAccount, goalId(service), NOW)),
+            PlannerViewModel.from(AccountSummary.from(unsupportedAccount),
+                service.plan(unsupportedAccount, goalId(service), NOW)),
+            PlannerViewModel.from(AccountSummary.from(completeAccount),
+                service.plan(completeAccount, goalId(service), NOW)),
+            PlannerViewModel.from(AccountSummary.from(needsInfoAccount),
+                service.plan(needsInfoAccount, goalId(service), NOW)));
+        assertEquals(List.of(PlannerViewModel.SurfaceState.WAITING, PlannerViewModel.SurfaceState.UNSUPPORTED,
+            PlannerViewModel.SurfaceState.COMPLETE, PlannerViewModel.SurfaceState.NEEDS_INFO),
+            states.stream().map(PlannerViewModel::getSurfaceState).collect(Collectors.toList()));
+        AtomicReference<UimAtlasPanel> panel = new AtomicReference<>();
+        SwingUtilities.invokeAndWait(() ->
+        {
+            panel.set(new UimAtlasPanel());
+            for (PlannerViewModel state : states)
+            {
+                panel.get().render(state);
+                assertFalse(panel.get().isRouteActionVisible());
+            }
+        });
+        assertTrue(textAreas(panel.get()).stream().noneMatch(value -> value.getText().contains("Loaded")));
+    }
+
+    private static String explanation(PlannerViewModel model)
+    {
+        return model.getWhy().stream().map(PlannerViewModel.Detail::getText).collect(Collectors.joining(" "));
+    }
+
+    private static String visibleText(PlannerViewModel model)
+    {
+        return String.join(" ", model.getStatus(), model.getNext(), model.getMethod() == null ? "" : model.getMethod(),
+            model.getStart() == null ? "" : model.getStart(), model.getReason(), explanation(model));
     }
 
     private static PlanningService production()

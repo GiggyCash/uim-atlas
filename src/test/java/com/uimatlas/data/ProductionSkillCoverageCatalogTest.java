@@ -42,6 +42,7 @@ public class ProductionSkillCoverageCatalogTest
     {
         List<MethodDefinition> methods = load();
         assertEquals(41, methods.size());
+        assertEquals(23, methods.stream().filter(method -> method.getStart().getRouteTarget().isPresent()).count());
         List<MethodDefinition> pack = methods.stream().filter(m -> FAMILIES.contains(m.getActivity()))
             .collect(Collectors.toList());
         assertEquals(11, pack.size());

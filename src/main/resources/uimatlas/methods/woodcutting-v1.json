@@ -22,7 +22,7 @@
   "methods":[
     {
       "id":"method.woodcutting.regular_trees_lumbridge","displayName":"Cut regular trees around Lumbridge","category":"GATHERING","activity":"WOODCUTTING",
-      "start":{"location":"Lumbridge surface","contact":"Regular trees","instruction":"Cut a nearby regular tree with one verified usable carried axe. Pause when inventory fills; no dropping, burning or future tool purchase is assumed."},
+      "start":{"location":"Lumbridge surface","routeTarget":{"x":3192,"y":3223,"plane":0},"contact":"Regular trees","instruction":"Cut a nearby regular tree with one verified usable carried axe. Pause when inventory fills; no dropping, burning or future tool purchase is assumed."},
       "hardRequirements":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":1,"description":"Unboosted level 1 required to cut regular trees.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next regular log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[],"produces":[],
@@ -50,7 +50,7 @@
     },
     {
       "id":"method.woodcutting.teak_castle_wars","displayName":"Cut the teak tree south-west of Castle Wars","category":"GATHERING","activity":"WOODCUTTING",
-      "start":{"location":"South-west of Castle Wars","contact":"Single teak tree","instruction":"Cut the teak tree normally with one verified usable carried axe. This is not a tick-manipulation loop; pause when inventory fills."},
+      "start":{"location":"South-west of Castle Wars","routeTarget":{"x":2335,"y":3048,"plane":0},"contact":"Single teak tree","instruction":"Cut the teak tree normally with one verified usable carried axe. This is not a tick-manipulation loop; pause when inventory fills."},
       "hardRequirements":[{"fact":"skill.woodcutting.level","comparison":"AT_LEAST","target":35,"description":"Unboosted level 35 required to cut teak trees.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next teak log.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[],"produces":[],

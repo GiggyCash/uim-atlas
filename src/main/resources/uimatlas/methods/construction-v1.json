@@ -104,6 +104,7 @@
       "activity": "CONSTRUCTION",
       "start": {
         "location": "Falador, south of the park",
+        "routeTarget": {"x": 2989, "y": 3363, "plane": 0},
         "contact": "Amy",
         "instruction": "Request a novice contract. Subsequent contracts can come from any contractor."
       },
@@ -376,6 +377,7 @@
       "activity": "CONSTRUCTION",
       "start": {
         "location": "Falador, south of the park",
+        "routeTarget": {"x": 2989, "y": 3363, "plane": 0},
         "contact": "Amy",
         "instruction": "Request an adept contract. Subsequent contracts can come from any contractor."
       },

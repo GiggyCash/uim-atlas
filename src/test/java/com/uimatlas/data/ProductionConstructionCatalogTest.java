@@ -76,6 +76,25 @@ public class ProductionConstructionCatalogTest
     }
 
     @Test
+    public void optionalRouteTargetLoadsAndMalformedCoordinatesFailClearly() throws Exception
+    {
+        MethodDefinition.RouteTarget route = load().get(0).getStart().getRouteTarget().orElseThrow();
+        assertEquals(new MethodDefinition.RouteTarget(2989, 3363, 0), route);
+        assertTrue(load().get(2).getStart().getRouteTarget().isEmpty());
+
+        mutate(root -> first(root).getAsJsonObject("start").getAsJsonObject("routeTarget")
+            .addProperty("plane", 4), "plane");
+        mutate(root -> first(root).getAsJsonObject("start").getAsJsonObject("routeTarget")
+            .addProperty("x", -1), "x");
+        mutate(root -> first(root).getAsJsonObject("start").getAsJsonObject("routeTarget")
+            .addProperty("y", 16384), "y");
+        mutate(root -> first(root).getAsJsonObject("start").getAsJsonObject("routeTarget")
+            .addProperty("x", 2989.5), "integer");
+        mutate(root -> first(root).getAsJsonObject("start").getAsJsonObject("routeTarget")
+            .addProperty("extra", 1), "unknown fields");
+    }
+
+    @Test
     public void realAccountLevelsGateEveryProductionMethodAndUnobservedHouseStaysUnknown() throws Exception
     {
         for (MethodDefinition method : load())
@@ -303,6 +322,7 @@ public class ProductionConstructionCatalogTest
         {
             Set<String> entries = jar.stream().map(e -> e.getName()).collect(Collectors.toSet());
             assertTrue(entries.contains(CATALOG.substring(1)));
+            assertFalse(entries.stream().anyMatch(name -> name.startsWith("shortestpath/")));
             assertFalse(entries.stream().anyMatch(name -> name.toLowerCase(java.util.Locale.ROOT).contains("synthetic")));
             Path base = Path.of(System.getProperty("testClassesDirectory"));
             classes.filter(Files::isRegularFile).forEach(path -> assertFalse(entries.contains(base.relativize(path).toString().replace('\\', '/'))));
@@ -318,14 +338,18 @@ public class ProductionConstructionCatalogTest
             {
                 assertEquals(catalogs, index.lines().sorted().collect(Collectors.toList()));
             }
+            int routeTargets = 0;
             for (String path : catalogs)
             {
                 try (InputStreamReader reader = new InputStreamReader(jar.getInputStream(jar.getJarEntry(path)), StandardCharsets.UTF_8))
                 {
                     int expected = ProductionSkillCoverageCatalogTest.CATALOG_COUNTS.get(path.substring("uimatlas/methods/".length()));
-                    assertEquals(expected, new MethodDefinitionLoader().loadProduction(reader, canonicalItems()).size());
+                    List<MethodDefinition> packaged = new MethodDefinitionLoader().loadProduction(reader, canonicalItems());
+                    assertEquals(expected, packaged.size());
+                    routeTargets += packaged.stream().filter(method -> method.getStart().getRouteTarget().isPresent()).count();
                 }
             }
+            assertEquals(23, routeTargets);
         }
     }
 

@@ -13,10 +13,12 @@ import java.util.Locale;
 import java.util.stream.Stream;
 import lombok.Value;
 
-/** Immutable UI text derived from structured planning output; Swing only renders this value. */
+/** Immutable, UI-ready semantics. Swing renders this value and emits intent only. */
 @Value
 public class PlannerViewModel
 {
+    public enum SurfaceState { READY, SELECT_GOAL, WAITING, UNSUPPORTED, COMPLETE, NEEDS_INFO, NO_ACTION }
+
     @Value
     public static class GoalOption
     {
@@ -31,9 +33,17 @@ public class PlannerViewModel
     }
 
     @Value
+    public static class Detail
+    {
+        String label;
+        String text;
+    }
+
+    @Value
     public static class Option
     {
         String title;
+        String method;
         String status;
         String reason;
     }
@@ -42,28 +52,37 @@ public class PlannerViewModel
     String accountState;
     List<GoalOption> goals;
     String selectedGoalId;
+    String goalName;
+    String goalProgress;
+    SurfaceState surfaceState;
     String status;
     String next;
+    String method;
     String start;
     String reason;
-    List<String> why;
-    String handoff;
+    List<Detail> why;
+    MethodDefinition.RouteTarget routeTarget;
     List<Option> alternatives;
 
     public PlannerViewModel(String account, String accountState, List<GoalOption> goals,
-        String selectedGoalId, String status, String next, String start, String reason, List<String> why,
-        String handoff, List<Option> alternatives)
+        String selectedGoalId, String goalName, String goalProgress, SurfaceState surfaceState,
+        String status, String next, String method, String start, String reason, List<Detail> why,
+        MethodDefinition.RouteTarget routeTarget, List<Option> alternatives)
     {
         this.account = account;
         this.accountState = accountState;
         this.goals = List.copyOf(goals);
         this.selectedGoalId = selectedGoalId;
+        this.goalName = goalName;
+        this.goalProgress = goalProgress;
+        this.surfaceState = surfaceState;
         this.status = status;
         this.next = next;
+        this.method = method;
         this.start = start;
         this.reason = reason;
         this.why = List.copyOf(why);
-        this.handoff = handoff;
+        this.routeTarget = routeTarget;
         this.alternatives = List.copyOf(alternatives);
     }
 
@@ -73,104 +92,111 @@ public class PlannerViewModel
             .map(value -> new GoalOption(value.getId(), value.getDisplayName()))
             .collect(java.util.stream.Collectors.toUnmodifiableList());
         String goalId = planning.getSelectedGoal() == null ? null : planning.getSelectedGoal().getId();
+        String goalName = planning.getSelectedGoal() == null ? null : planning.getSelectedGoal().getDisplayName();
+        String progress = progress(planning);
         if (planning.getPrimary() != null)
         {
-            return primary(account, planning, goals, goalId);
+            return primary(account, planning, goals, goalId, goalName, progress);
         }
+
+        SurfaceState surface;
         String status;
         String next;
         switch (planning.getStatus())
         {
             case SELECT_GOAL:
+                surface = SurfaceState.SELECT_GOAL;
                 status = "SELECT GOAL";
-                next = "Choose a goal to begin.";
+                next = "Choose a goal";
                 break;
             case WAITING_FOR_ACCOUNT:
-                status = "NEEDS INFO";
-                next = "Waiting for account state.";
+                surface = SurfaceState.WAITING;
+                status = "WAITING";
+                next = "Waiting for account";
                 break;
             case UNSUPPORTED_ACCOUNT:
-                status = "NEEDS INFO";
-                next = "Ultimate Ironman account required.";
+                surface = SurfaceState.UNSUPPORTED;
+                status = "UNSUPPORTED";
+                next = "Ultimate Ironman required";
                 break;
             case GOAL_COMPLETE:
-                status = "COMPLETE";
-                next = planning.getSelectedGoal().getDisplayName() + " complete";
+                surface = SurfaceState.COMPLETE;
+                status = "GOAL COMPLETE";
+                next = goalName + " complete";
                 break;
             default:
-                status = "NEEDS INFO";
-                next = "Atlas needs more information before recommending a next action.";
+                boolean noAction = planning.getReason().getKind() == PlanningService.ReasonKind.NO_COVERED_ACTION;
+                surface = noAction ? SurfaceState.NO_ACTION : SurfaceState.NEEDS_INFO;
+                status = noAction ? "NO ACTION" : "NEEDS INFO";
+                next = noAction ? "No actionable recommendation" : "Atlas needs information";
         }
-        return new PlannerViewModel(account.getAccount(), account.getStatus(), goals, goalId,
-            status, next, null, reason(planning.getReason()), List.of(), null, options(planning));
+        return new PlannerViewModel(account.getAccount(), account.getStatus(), goals, goalId, goalName,
+            progress, surface, status, next, null, null, reason(planning.getReason()), List.of(), null,
+            options(planning));
     }
 
     private static PlannerViewModel primary(AccountSummary account, PlanningService.Result planning,
-        List<GoalOption> goals, String goalId)
+        List<GoalOption> goals, String goalId, String goalName, String progress)
     {
         StrategicAction action = planning.getPrimary().getAction();
-        List<String> why = new ArrayList<>();
+        List<Detail> why = new ArrayList<>();
         String next;
+        String methodName = null;
         String start = null;
         String reason;
         String status;
-        String handoff = null;
+        MethodDefinition.RouteTarget routeTarget = null;
         if (action instanceof StrategicAction.Method)
         {
             StrategicAction.Method methodAction = (StrategicAction.Method) action;
             MethodDefinition method = methodAction.getResult().getMethod();
-            next = method.getDisplayName();
+            GoalState.Check target = target(planning.getPrimary(), methodAction, goalId);
+            String skill = title(method.getActivity());
+            String targetLevel = target == null ? null : number(target.getRequirement().getTarget());
+            next = targetLevel == null ? method.getDisplayName() : "Train " + skill + " to " + targetLevel;
+            methodName = method.getDisplayName();
             start = method.getStart().getLocation();
             status = "SETUP READY";
-            GoalState.Check target = target(planning.getPrimary(), methodAction,
-                planning.getSelectedGoal().getId());
-            String targetText = target == null ? null : number(target.getRequirement().getTarget())
-                + " " + title(method.getActivity());
-            reason = target == null ? "This method advances the selected goal and its setup is verified."
-                : planning.getSelectedGoal().getDisplayName() + " still needs "
-                    + targetText + ". Your setup is ready.";
-            if (targetText != null)
-            {
-                why.add("Goal: " + planning.getSelectedGoal().getDisplayName() + " still needs " + targetText + ".");
-            }
-            List<String> setup = Stream.concat(
-                methodAction.getResult().getEvaluation().getPreparationAnyOf().stream()
-                    .filter(value -> value.getResult() == MethodEvaluator.GroupResult.SATISFIED)
-                    .flatMap(value -> value.getAlternatives().stream()
-                        .filter(alternative -> alternative.getResult() == MethodEvaluator.GroupResult.SATISFIED)
-                        .limit(1).flatMap(alternative -> alternative.getAlternative().getRequirements().stream())
-                        .filter(requirement -> !requirement.getFact().startsWith("skill.")).limit(1))
-                    .map(value -> userClause(value.getDescription())),
-                Stream.concat(method.getPreparation().stream(),
-                    Stream.concat(method.getSetupItems().stream(), method.getConsumes().stream()))
-                    .map(value -> userClause(value.getDescription())))
-                .limit(2).collect(java.util.stream.Collectors.toList());
-            why.add("Setup: " + (setup.isEmpty() ? "Encoded setup requirements are verified."
-                : String.join(" ", setup)));
-            why.add("Start: " + start + ".");
-            methodAction.getResult().getEfficiency().getTrustedXpRate().ifPresent(rate -> why.add(
-                "Trusted range: " + number(rate.getMinimum()) + "–" + number(rate.getMaximum()) + " XP/hour."));
-            if (targetText != null)
-            {
-                why.add("Recheck: at " + targetText + ".");
-            }
-            why.add("Location: Travel and current proximity have not been verified.");
+            reason = targetLevel == null ? "This method directly advances " + goalName + "."
+                : goalName + " still needs " + targetLevel + " " + skill + ".";
+            why.add(new Detail("Goal", targetLevel == null ? "Direct progress for " + goalName + "."
+                : goalName + " needs " + targetLevel + " " + skill + "."));
+            why.add(new Detail("Setup", setup(methodAction, method)));
+            why.add(new Detail("Method", method.getDisplayName() + "."));
+            why.add(new Detail("Destination", start + "."));
+            why.add(new Detail("Boundary", "Travel and current proximity have not been verified."));
+            routeTarget = method.getStart().getRouteTarget().orElse(null);
         }
         else
         {
             QuestAction quest = (QuestAction) action;
             next = quest.getHandoff().getDisplayName();
-            status = "HANDOFF";
-            reason = "This milestone is on the active " + planning.getSelectedGoal().getDisplayName()
-                + " frontier, with its encoded strategic prerequisites satisfied.";
-            why.add("Goal: This is the next available milestone in "
-                + planning.getSelectedGoal().getDisplayName() + ".");
-            why.add("Handoff: Encoded dependencies and strategic prerequisites are satisfied.");
-            why.add("Preflight: Quest items and combat readiness have not been verified.");
-            handoff = "Use Quest Helper to continue this quest.";
+            status = "QUEST";
+            reason = "Directly available " + goalName + " milestone.";
+            why.add(new Detail("Goal", "Directly available milestone."));
+            why.add(new Detail("Readiness", "Encoded strategic prerequisites are satisfied."));
+            why.add(new Detail("Boundary", "Quest items and combat readiness are not fully verified."));
         }
-        return new PlannerViewModel(account.getAccount(), account.getStatus(), goals, goalId,
-            status, next, start, reason, why, handoff, options(planning));
+        return new PlannerViewModel(account.getAccount(), account.getStatus(), goals, goalId, goalName,
+            progress, SurfaceState.READY, status, next, methodName, start, reason, why, routeTarget,
+            options(planning));
+    }
+
+    private static String setup(StrategicAction.Method action, MethodDefinition method)
+    {
+        List<String> setup = Stream.concat(
+            action.getResult().getEvaluation().getPreparationAnyOf().stream()
+                .filter(value -> value.getResult() == MethodEvaluator.GroupResult.SATISFIED)
+                .flatMap(value -> value.getAlternatives().stream()
+                    .filter(alternative -> alternative.getResult() == MethodEvaluator.GroupResult.SATISFIED)
+                    .limit(1).flatMap(alternative -> alternative.getAlternative().getRequirements().stream())
+                    .filter(requirement -> !requirement.getFact().startsWith("skill.")).limit(1))
+                .map(value -> userClause(value.getDescription())),
+            Stream.concat(method.getPreparation().stream(),
+                Stream.concat(method.getSetupItems().stream(), method.getConsumes().stream()))
+                .map(value -> userClause(value.getDescription())))
+            .limit(2).collect(java.util.stream.Collectors.toList());
+        return setup.isEmpty() ? "Encoded carried setup is verified." : String.join(" ", setup);
     }
 
     private static List<Option> options(PlanningService.Result planning)
@@ -179,10 +205,18 @@ public class PlannerViewModel
         {
             StrategicDecision.Candidate candidate = value.getCandidate();
             StrategicAction action = candidate.getAction();
-            String title = action instanceof StrategicAction.Method
-                ? ((StrategicAction.Method) action).getResult().getMethod().getDisplayName()
-                : ((QuestAction) action).getHandoff().getDisplayName();
-            return new Option(title, optionStatus(action), reason(value.getReason()));
+            if (action instanceof StrategicAction.Method)
+            {
+                StrategicAction.Method method = (StrategicAction.Method) action;
+                GoalState.Check target = target(candidate, method, planning.getSelectedGoal().getId());
+                String title = target == null ? method.getResult().getMethod().getDisplayName()
+                    : title(method.getResult().getMethod().getActivity()) + " to "
+                        + number(target.getRequirement().getTarget());
+                return new Option(title, method.getResult().getMethod().getDisplayName(),
+                    optionStatus(action), reason(value.getReason()));
+            }
+            return new Option(((QuestAction) action).getHandoff().getDisplayName(), null,
+                optionStatus(action), reason(value.getReason()));
         }).collect(java.util.stream.Collectors.toUnmodifiableList());
     }
 
@@ -194,7 +228,7 @@ public class PlannerViewModel
         }
         if (action.getReadiness() == StrategicAction.Readiness.READY_TO_HANDOFF)
         {
-            return "HANDOFF";
+            return "QUEST";
         }
         if (action.getReadiness() == StrategicAction.Readiness.BLOCKED)
         {
@@ -209,21 +243,31 @@ public class PlannerViewModel
                 return "NEEDS PREP";
             }
         }
-        return "UNKNOWN";
+        return "NEEDS INFO";
     }
 
     private static GoalState.Check target(StrategicDecision.Candidate candidate,
         StrategicAction.Method method, String goalId)
     {
         Stream<GoalState.Check> preferred = candidate.getFrontierRequirements().isEmpty()
-            ? method.getRelevance().getMatchedRequirements().stream()
-                .filter(value -> value.getScopeId().equals(goalId))
+            ? method.getRelevance().getMatchedRequirements().stream().filter(value -> value.getScopeId().equals(goalId))
             : candidate.getFrontierRequirements().stream();
-        GoalState.Check result = preferred.max(java.util.Comparator.comparingDouble(
-            value -> value.getRequirement().getTarget())).orElse(null);
+        GoalState.Check result = preferred.filter(value -> value.getRequirement().getFact().startsWith("skill."))
+            .max(java.util.Comparator.comparingDouble(value -> value.getRequirement().getTarget())).orElse(null);
         return result == null ? method.getRelevance().getMatchedRequirements().stream()
+            .filter(value -> value.getRequirement().getFact().startsWith("skill."))
             .max(java.util.Comparator.comparingDouble(value -> value.getRequirement().getTarget())).orElse(null)
             : result;
+    }
+
+    private static String progress(PlanningService.Result planning)
+    {
+        if (planning.getStrategic() == null)
+        {
+            return null;
+        }
+        GoalState state = planning.getStrategic().getContext().getGoalState();
+        return state.getCompletedMilestones() + " / " + state.getTotalMilestones() + " milestones";
     }
 
     private static String reason(PlanningService.Reason value)
@@ -231,7 +275,7 @@ public class PlannerViewModel
         switch (value.getKind())
         {
             case REOBSERVATION_REQUIRED:
-                return value.getDescription() + " Needs a fresh observation.";
+                return value.getDescription() + " A fresh observation is needed.";
             case UNKNOWN_REQUIREMENT:
                 return "Atlas cannot verify: " + value.getDescription();
             case MISSING_PREPARATION:

@@ -115,7 +115,13 @@ public final class MethodDefinitionLoader
         String activity = method.text("activity");
         require(!production || activity.matches("[A-Z][A-Z0-9_]*"),
             method.at("activity") + ": expected uppercase activity identifier");
-        DefinitionJson start = method.child("start").fields("location", "contact", "instruction");
+        DefinitionJson start = method.child("start");
+        boolean hasRouteTarget = production && start.has("routeTarget");
+        start.fields(hasRouteTarget
+            ? new String[] {"location", "contact", "instruction", "routeTarget"}
+            : new String[] {"location", "contact", "instruction"});
+        Optional<MethodDefinition.RouteTarget> routeTarget = hasRouteTarget
+            ? Optional.of(routeTarget(start.child("routeTarget"))) : Optional.empty();
         DefinitionJson style = method.child("style").fields("attention", "playStyle", "tickManipulation");
         DefinitionJson costs = method.child("costs").fields("storageUnlockValue", "setupMinutes", "transitionMinutes",
             "inventoryDisruption", "assumptions");
@@ -170,7 +176,8 @@ public final class MethodDefinitionLoader
         List<MethodDefinition.Source> sources = production ? method.list("sources", this::source) : List.of();
         require(!production || !sources.isEmpty(), method.at("sources") + ": production requires source metadata");
         return new MethodDefinition(id, name, method.text("category"), activity,
-            new MethodDefinition.Start(start.text("location"), start.text("contact"), start.text("instruction")),
+            new MethodDefinition.Start(start.text("location"), start.text("contact"), start.text("instruction"),
+                routeTarget),
             hard, prep, slots, setup, consumes, produces, stops,
             new MethodDefinition.Style(style.number("attention", 0, 1), style.text("playStyle"), style.bool("tickManipulation")),
             production ? null : xpRate(method.child("xpRate")),
@@ -183,6 +190,13 @@ public final class MethodDefinitionLoader
             flowShape && !consumes.isEmpty() ? Optional.of(ResourceFlowJson.parse(method, facts, slots,
                 value -> quantityRequirement(value, facts, true), value -> resource(value, facts, true)))
                 : Optional.empty(), preparationAnyOf);
+    }
+
+    private MethodDefinition.RouteTarget routeTarget(DefinitionJson value)
+    {
+        value.fields("x", "y", "plane");
+        return new MethodDefinition.RouteTarget(value.integer("x", 16383),
+            value.integer("y", 16383), value.integer("plane", 3));
     }
 
     private Map<String, MethodDefinition.RequirementGroup> requirementGroups(DefinitionJson root, Set<String> facts)

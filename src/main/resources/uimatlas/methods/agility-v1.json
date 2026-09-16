@@ -26,6 +26,7 @@
       "activity": "AGILITY",
       "start": {
         "location": "Draynor Village",
+        "routeTarget": {"x": 3103, "y": 3279, "plane": 0},
         "contact": "Rough wall beside the wheat field north of the bank",
         "instruction": "Begin at the rough wall. Recheck at the goal target or a natural lap boundary."
       },
@@ -129,6 +130,7 @@
       "activity": "AGILITY",
       "start": {
         "location": "Varrock",
+        "routeTarget": {"x": 3221, "y": 3414, "plane": 0},
         "contact": "Rough wall east of the general store",
         "instruction": "Begin at the rough wall. Falls can cause damage; pause to reassess health after failures."
       },
@@ -241,6 +243,7 @@
       "activity": "AGILITY",
       "start": {
         "location": "Canifis",
+        "routeTarget": {"x": 3507, "y": 3489, "plane": 0},
         "contact": "Tall tree north of the bank",
         "instruction": "Begin at the tall tree after verified access. Falls can cause damage; pause to reassess health after failures."
       },

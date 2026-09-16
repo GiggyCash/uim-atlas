@@ -35,6 +35,7 @@
       "activity": "FISHING",
       "start": {
         "location": "River Lum east of Barbarian Village",
+        "routeTarget": {"x": 3106, "y": 3428, "plane": 0},
         "contact": "Lure fishing spots",
         "instruction": "Fish using the carried fly fishing rod and feathers. Stop for an inventory recheck when full; cooking, dropping and resupply are outside this record."
       },
@@ -189,6 +190,7 @@
       "activity": "FISHING",
       "start": {
         "location": "Tempoross Cove via the Ruins of Unkah",
+        "routeTarget": {"x": 3143, "y": 2824, "plane": 0},
         "contact": "Tempoross boarding boat",
         "instruction": "Begin the ordinary group activity with a harpoon, rope, hammer and two filled water buckets. Tools can be obtained within the activity, but acquisition is not assumed complete. Use the activity guide for execution."
       },

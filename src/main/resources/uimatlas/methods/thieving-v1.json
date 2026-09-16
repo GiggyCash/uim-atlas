@@ -16,7 +16,7 @@
   "methods":[
     {
       "id":"method.thieving.east_ardougne_cake_stall","displayName":"Steal from the East Ardougne cake stall","category":"TRAINING","activity":"THIEVING",
-      "start":{"location":"East Ardougne market","contact":"Bakery stall safespot","instruction":"Steal from the bakery stall while positioned in the documented safespot. Recheck when inventory fills; no future food use or disposal is assumed."},
+      "start":{"location":"East Ardougne market","routeTarget":{"x":2668,"y":3311,"plane":0},"contact":"Bakery stall safespot","instruction":"Steal from the bakery stall while positioned in the documented safespot. Recheck when inventory fills; no future food use or disposal is assumed."},
       "hardRequirements":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":5,"description":"Unboosted level 5 required to steal from a bakery stall.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[], "freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next successful stall item.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[],"produces":[],
@@ -30,7 +30,7 @@
     },
     {
       "id":"method.thieving.hosidius_fruit_stalls","displayName":"Steal from the eastern Hosidius fruit stalls","category":"TRAINING","activity":"THIEVING",
-      "start":{"location":"Eastern Hosidius beach house","contact":"Two fruit stalls without nearby guard dogs","instruction":"Alternate between the two stalls and pause when inventory fills. Eating or dropping fruit and run-energy support are not assumed."},
+      "start":{"location":"Eastern Hosidius beach house","routeTarget":{"x":1767,"y":3597,"plane":0},"contact":"Two fruit stalls without nearby guard dogs","instruction":"Alternate between the two stalls and pause when inventory fills. Eating or dropping fruit and run-energy support are not assumed."},
       "hardRequirements":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":25,"description":"Unboosted level 25 required to steal from fruit stalls.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the next random fruit output.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[],"produces":[],
@@ -44,7 +44,7 @@
     },
     {
       "id":"method.thieving.stealing_artefacts","displayName":"Steal artefacts in Port Piscarilius","category":"TRAINING","activity":"THIEVING",
-      "start":{"location":"Port Piscarilius foodhall","contact":"Captain Khaled","instruction":"Accept one assignment, open the assigned drawer with a verified tool, and return the artefact on foot. Teleport support and run-energy aids are optional."},
+      "start":{"location":"Port Piscarilius foodhall","routeTarget":{"x":1845,"y":3753,"plane":0},"contact":"Captain Khaled","instruction":"Accept one assignment, open the assigned drawer with a verified tool, and return the artefact on foot. Teleport support and run-energy aids are optional."},
       "hardRequirements":[{"fact":"skill.thieving.level","comparison":"AT_LEAST","target":49,"description":"Unboosted level 49 required to steal artefacts.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false}],
       "preparation":[],"freeInventorySlots":{"fact":"inventory.free_slots","comparison":"AT_LEAST","target":1,"description":"One ordinary empty position for the assigned stolen artefact.","allowLastObserved":false,"maxAgeSeconds":300,"safetyRelevant":false},
       "setupItems":[],"consumes":[],"produces":[],

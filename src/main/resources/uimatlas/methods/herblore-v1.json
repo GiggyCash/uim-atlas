@@ -328,7 +328,7 @@
       "displayName": "Mastering Mixology — Mammoth-Might order",
       "category": "MINIGAME",
       "activity": "HERBLORE",
-      "start": { "location": "Alchemical Society, Aldarin", "contact": "Mixing vessel", "instruction": "Only when Mammoth-Might is a currently verified order, draw three measures of mox paste and process the potion." },
+      "start": { "location": "Alchemical Society, Aldarin", "routeTarget": {"x": 1388, "y": 2920, "plane": 0}, "contact": "Mixing vessel", "instruction": "Only when Mammoth-Might is a currently verified order, draw three measures of mox paste and process the potion." },
       "hardRequirements": [
         { "fact": "skill.herblore.level", "comparison": "AT_LEAST", "target": 60, "description": "Unboosted level required to participate in Mastering Mixology.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },
         { "fact": "capability.quest.children_of_the_sun.complete", "comparison": "AT_LEAST", "target": 1, "description": "Children of the Sun completion is required to participate; no live provider exists yet.", "allowLastObserved": false, "maxAgeSeconds": 300, "safetyRelevant": false },

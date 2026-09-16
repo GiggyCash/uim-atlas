@@ -3,6 +3,7 @@ package com.uimatlas.plugin;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.uimatlas.planning.PlanningService;
+import com.uimatlas.recommendation.GoalDefinition;
 import com.uimatlas.state.AccountState;
 import com.uimatlas.state.AccountStateService;
 import com.uimatlas.ui.UimAtlasPanel;
@@ -27,6 +28,18 @@ import static org.mockito.Mockito.*;
 
 public class UimAtlasPluginTest
 {
+    @Test
+    public void automaticGoalSelectionIsCardinalityBasedAndGoalAgnostic()
+    {
+        PlanningService planning = PlanningService.loadProduction(getClass().getClassLoader(),
+            java.util.Arrays.stream(net.runelite.api.Quest.values()).map(net.runelite.api.Quest::getId)
+                .collect(java.util.stream.Collectors.toSet()), 333);
+        GoalDefinition only = planning.getGoals().get(0);
+        assertEquals(only.getId(), UimAtlasPlugin.automaticGoalId(java.util.List.of(only)));
+        assertNull(UimAtlasPlugin.automaticGoalId(java.util.List.of()));
+        assertNull(UimAtlasPlugin.automaticGoalId(java.util.List.of(only, only)));
+    }
+
     @Test
     public void injectionEventBusSidebarAndRepeatedLifecycleWork() throws Exception
     {
@@ -58,12 +71,9 @@ public class UimAtlasPluginTest
         assertTrue(navigation.getValue().getPanel() instanceof UimAtlasPanel);
         assertEquals(24, navigation.getValue().getIcon().getWidth());
         UimAtlasPanel panel = (UimAtlasPanel) navigation.getValue().getPanel();
-        assertEquals("SELECT GOAL", panel.getDisplayed().getStatus());
         String goalId = injector.getInstance(PlanningService.class).getGoals().get(0).getId();
-        SwingUtilities.invokeAndWait(() -> panel.selectGoal(goalId));
-        flushSwing();
         assertEquals(goalId, panel.getDisplayed().getSelectedGoalId());
-        assertEquals("NEEDS INFO", panel.getDisplayed().getStatus());
+        assertEquals("WAITING", panel.getDisplayed().getStatus());
 
         events.post(new ScriptPostFired(ScriptID.QUESTLIST_INIT));
         verifyNoInteractions(client); // Script callbacks only mark dirty; they cannot run nested scripts.
@@ -73,7 +83,7 @@ public class UimAtlasPluginTest
         events.post(logout);
         assertEquals(AccountState.empty(), states.getSnapshot());
         flushSwing();
-        assertEquals("Waiting for account state.", panel.getDisplayed().getNext());
+        assertEquals("Waiting for account", panel.getDisplayed().getNext());
 
         states.publish(AccountState.builder().loggedIn(true).build());
         GameStateChanged hop = new GameStateChanged();
@@ -81,7 +91,7 @@ public class UimAtlasPluginTest
         events.post(hop);
         assertEquals(AccountState.empty(), states.getSnapshot());
         flushSwing();
-        assertEquals("Waiting for account state.", panel.getDisplayed().getNext());
+        assertEquals("Waiting for account", panel.getDisplayed().getNext());
 
         states.publish(AccountState.builder().loggedIn(true).build());
         events.post(new ProfileChanged());
