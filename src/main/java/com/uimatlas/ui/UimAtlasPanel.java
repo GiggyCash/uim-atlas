@@ -166,8 +166,13 @@ public class UimAtlasPanel extends PluginPanel
         repaint();
     }
 
-    public void routeResult(boolean requested)
+    public void routeResult(MethodDefinition.RouteTarget target, boolean requested)
     {
+        // Alternative requests have no feedback on the primary card; ignore results after reset too.
+        if (displayed == null || !target.equals(displayed.getRouteTarget()) || route.isEnabled())
+        {
+            return;
+        }
         route.setEnabled(displayed != null && displayed.getRouteTarget() != null);
         routeFeedback.setText(requested ? "Route requested." : "Route unavailable right now.");
         routeFeedback.setForeground(requested ? AtlasTheme.POSITIVE : AtlasTheme.MUTED);
@@ -316,6 +321,15 @@ public class UimAtlasPanel extends PluginPanel
             status.setText(value.getStatus());
             status.setBorder(AtlasTheme.padding(AtlasTheme.SPACE_1, 0, 0, 0));
             row.add(status);
+            if (value.getRouteTarget() != null)
+            {
+                JButton action = toggle("Route");
+                action.setText("Route →");
+                action.setName("alternativeRouteAction");
+                action.setFont(AtlasTheme.SMALL);
+                action.addActionListener(event -> routeRequested.accept(value.getRouteTarget()));
+                row.add(action);
+            }
             JTextArea detail = text(AtlasTheme.MUTED, AtlasTheme.SMALL);
             detail.setText(value.getReason());
             detail.setBorder(AtlasTheme.padding(AtlasTheme.SPACE_1, 0, 0, 0));

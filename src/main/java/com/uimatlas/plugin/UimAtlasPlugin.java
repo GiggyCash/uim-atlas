@@ -280,7 +280,7 @@ public class UimAtlasPlugin extends Plugin
                 {
                     if (running && panel != null)
                     {
-                        panel.routeResult(requested);
+                        panel.routeResult(target, requested);
                     }
                 });
             });

@@ -283,6 +283,79 @@ public class PlanningServiceTest
     }
 
     @Test
+    public void alternativeRouteTargetsRequireReadyMethodsAndVerifiedDestinations() throws Exception
+    {
+        PlanningService service = production();
+        List<AccountState> snapshots = List.of(
+            account(Map.of("MINING", 20), inventory(Map.of(0, new ItemStack(ItemID.BRONZE_PICKAXE, 1)), NOW),
+                NOW, false, Map.of(2307, QuestStatus.NOT_STARTED)),
+            account(Map.of("MINING", 20), Observation.unknown(), NOW, false,
+                Map.of(2307, QuestStatus.NOT_STARTED)),
+            account(Map.of("AGILITY", 40), emptyInventory(NOW), NOW, false,
+                Map.of(2307, QuestStatus.NOT_STARTED)).toBuilder().capabilities(Observation.map(
+                    Map.of("capability.quest.priest_in_peril.complete", false), "scenario capabilities", NOW)).build(),
+            account(Map.of("HERBLORE", 3), inventory(Map.of(0, new ItemStack(ItemID.UNIDENTIFIED_GUAM, 1)), NOW),
+                NOW, false, Map.of(2307, QuestStatus.NOT_STARTED)));
+        Set<String> covered = new java.util.HashSet<>();
+        for (AccountState snapshot : snapshots)
+        {
+            PlanningService.Result result = service.plan(snapshot, goalId(service), NOW);
+            // Exercise every diagnostic candidate, including those beyond the five visible alternatives.
+            List<PlanningService.Alternative> alternatives = result.getStrategic().getCandidates().stream()
+                .map(candidate -> new PlanningService.Alternative(candidate, result.getReason()))
+                .collect(Collectors.toList());
+            PlanningService.Result expanded = new PlanningService.Result(result.getStatus(), result.getGoals(),
+                result.getSelectedGoal(), result.getStrategic(), result.getPrimary(), alternatives, result.getReason(),
+                result.getEvaluatedAt(), result.getRefreshAt(), result.getRefreshFacts(), result.getMethodCount(),
+                result.getRelevantMethodCount(), result.getActionableCount());
+            PlannerViewModel model = PlannerViewModel.from(AccountSummary.from(snapshot), expanded);
+            int routeCount = 0;
+            for (int i = 0; i < alternatives.size(); i++)
+            {
+                StrategicAction action = alternatives.get(i).getCandidate().getAction();
+                MethodDefinition.RouteTarget expected = null;
+                if (action instanceof StrategicAction.Method)
+                {
+                    StrategicAction.Method method = (StrategicAction.Method) action;
+                    covered.add(action.getReadiness().name());
+                    if (action.getReadiness() == StrategicAction.Readiness.READY)
+                    {
+                        expected = method.getResult().getMethod().getStart().getRouteTarget().orElse(null);
+                        covered.add(expected == null ? "READY_WITHOUT_TARGET" : "READY_WITH_TARGET");
+                    }
+                }
+                else { covered.add("QUEST"); }
+                assertEquals(expected, model.getAlternatives().get(i).getRouteTarget());
+                if (expected != null) { routeCount++; }
+            }
+            int expectedButtons = routeCount;
+            SwingUtilities.invokeAndWait(() ->
+            {
+                UimAtlasPanel panel = new UimAtlasPanel(ignored -> fail("No goal intent during render"),
+                    ignored -> fail("No route intent during render"));
+                panel.render(model);
+                assertEquals(expectedButtons, alternativeRouteButtons(panel).size());
+            });
+        }
+        assertTrue(covered.toString(), covered.containsAll(Set.of("READY_WITH_TARGET", "READY_WITHOUT_TARGET",
+            "QUEST", "BLOCKED", "UNRESOLVED")));
+    }
+
+    private static List<javax.swing.JButton> alternativeRouteButtons(Container container)
+    {
+        List<javax.swing.JButton> result = new ArrayList<>();
+        for (Component child : container.getComponents())
+        {
+            if (child instanceof javax.swing.JButton && "alternativeRouteAction".equals(child.getName()))
+            {
+                result.add((javax.swing.JButton) child);
+            }
+            if (child instanceof Container) { result.addAll(alternativeRouteButtons((Container) child)); }
+        }
+        return result;
+    }
+
+    @Test
     public void alternativeReasonsUsePriorityAndScoreEvidenceAndNarrowPanelWraps() throws Exception
     {
         PlanningService service = production();
@@ -307,6 +380,10 @@ public class PlanningServiceTest
         assertTrue(explanation(model).contains("not fully verified"));
         assertFalse(visibleText(model).contains("HANDOFF"));
         assertFalse(visibleText(model).contains("Quest Helper"));
+        PlannerViewModel.Option mining = model.getAlternatives().stream()
+            .filter(option -> option.getTitle().equals("Mining to 50")).findFirst().orElseThrow();
+        assertEquals("SETUP READY", mining.getStatus());
+        assertNotNull(mining.getRouteTarget());
 
         AtomicReference<UimAtlasPanel> panel = new AtomicReference<>();
         SwingUtilities.invokeAndWait(() ->
@@ -314,6 +391,7 @@ public class PlanningServiceTest
             panel.set(new UimAtlasPanel());
             panel.get().setSize(225, 900);
             panel.get().render(model);
+            panel.get().toggleOptions();
             layout(panel.get());
         });
         List<JTextArea> text = textAreas(panel.get());
@@ -330,6 +408,10 @@ public class PlanningServiceTest
         assertFalse(laidOut.isEmpty());
         assertTrue(laidOut.stream().allMatch(value -> value.getLineWrap()
             && value.getWrapStyleWord() && value.getPreferredSize().width <= value.getParent().getWidth()));
+        List<javax.swing.JButton> routeButtons = alternativeRouteButtons(panel.get());
+        assertFalse(routeButtons.isEmpty());
+        assertTrue(routeButtons.stream().allMatch(button ->
+            button.getPreferredSize().width <= button.getParent().getWidth()));
         assertFalse(panel.get().isRouteActionVisible());
     }
 

@@ -46,6 +46,7 @@ public class PlannerViewModel
         String method;
         String status;
         String reason;
+        MethodDefinition.RouteTarget routeTarget;
     }
 
     String account;
@@ -213,10 +214,12 @@ public class PlannerViewModel
                     : title(method.getResult().getMethod().getActivity()) + " to "
                         + number(target.getRequirement().getTarget());
                 return new Option(title, method.getResult().getMethod().getDisplayName(),
-                    optionStatus(action), reason(value.getReason()));
+                    optionStatus(action), reason(value.getReason()),
+                    action.getReadiness() == StrategicAction.Readiness.READY
+                        ? method.getResult().getMethod().getStart().getRouteTarget().orElse(null) : null);
             }
             return new Option(((QuestAction) action).getHandoff().getDisplayName(), null,
-                optionStatus(action), reason(value.getReason()));
+                optionStatus(action), reason(value.getReason()), null);
         }).collect(java.util.stream.Collectors.toUnmodifiableList());
     }
 
